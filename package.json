@@ -8,13 +8,16 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "sync-results": "tsx --env-file-if-exists=.env.local scripts/sync-results.ts",
-    "check-sheet": "tsx --env-file=.env.local scripts/check-sheet.ts"
+    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts"
   },
   "dependencies": {
+    "@neon/config": "^1.9.6",
+    "@neon/env": "^1.6.6",
     "@vercel/analytics": "^2.0.1",
-    "google-auth-library": "^11.3.2",
+    "@vercel/functions": "^3.10.5",
     "next": "^16.4.3",
     "nodemailer": "^10.3.1",
+    "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "zod": "^4.6.7"
@@ -23,6 +26,7 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.6",
     "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",

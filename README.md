@@ -1,17 +1,17 @@
 # MBTI · Giao tiếp
 
-Web test phong cách giao tiếp qua MBTI (12 câu) theo lĩnh vực nghề nghiệp, thu đăng ký tư vấn 1-1 và chia về sheet của từng người quản lý theo link `?ref=`.
-
-Tài liệu tổng hợp và ảnh thiết kế: [docs/Tong-hop-du-an-MBTI-Giao-tiep.pdf](docs/Tong-hop-du-an-MBTI-Giao-tiep.pdf)
+Web test phong cách giao tiếp qua MBTI (12 câu) theo lĩnh vực nghề nghiệp, thu đăng ký tư vấn 1-1 vào database Neon Postgres, chia cho từng người quản lý theo link `?ref=`.
 
 ## Chạy ở máy
 
 ```bash
 npm install
+neon env pull      # lấy DATABASE_URL về .env.local (cần neon login trước)
+npm run db:migrate # tạo / cập nhật bảng
 npm run dev
 ```
 
-Mở http://localhost:3000. Khi chưa có file `.env.local`, đăng ký chỉ in ra console.
+Mở http://localhost:3000.
 
 ## Cập nhật nội dung kết quả
 
@@ -39,38 +39,15 @@ Sau đó commit file `src/data/results.json` và đẩy lên, Vercel sẽ tự d
 | `/ket-qua?mbti=ENTJ&linh-vuc=...` | Kết quả |
 | `/dang-ky` | Form đăng ký |
 | `/cam-on` | Trang cảm ơn |
-| `POST /api/register` | Ghi sheet tổng + sheet người quản lý + email |
+| `POST /api/register` | Lưu đăng ký vào database + gửi email xác nhận (nếu bật) |
 
-## Cấu hình Google Sheet cho phần đăng ký (làm một lần)
+## Database (Neon Postgres)
 
-1. **Tạo Service Account**
-   - Vào https://console.cloud.google.com, tạo project mới.
-   - *APIs & Services → Library* → bật **Google Sheets API**.
-   - *IAM & Admin → Service Accounts* → tạo tài khoản → tab *Keys* → *Add key → JSON*. Tải file JSON về.
-   - Lấy `client_email` và `private_key` trong file JSON điền vào `.env.local` (xem `.env.example`).
-
-2. **Sheet tổng**: tạo Google Sheet mới, chia sẻ quyền **Người chỉnh sửa** cho `client_email`, điền ID vào `MASTER_SHEET_ID`.
-   - Tab `DangKy` sẽ được tự tạo khi có đăng ký đầu tiên.
-   - Tạo tab `Config` với dòng tiêu đề và mỗi người quản lý một dòng:
-
-     | ma_ref | ten | link_sheet | dang_hoat_dong |
-     |---|---|---|---|
-     | lan | Chị Lan | https://docs.google.com/spreadsheets/d/... | TRUE |
-
-   - `ma_ref`: chữ thường không dấu, số, `-` hoặc `_`. Link của người đó là `https://ten-mien/?ref=lan`.
-   - Đặt `dang_hoat_dong` = `FALSE` để tạm ngưng chia cho một người.
-
-3. **Sheet của từng quản lý**: mỗi người tạo một Google Sheet, chia sẻ quyền **Người chỉnh sửa** cho `client_email` rồi gửi link để điền vào tab `Config`. Đăng ký được ghi vào **tab đầu tiên**; dòng tiêu đề tự tạo nếu sheet trống. Quản lý có thể thêm cột ghi chú ở bên phải cột R.
-
-4. Kiểm tra:
-
-   ```bash
-   npm run check-sheet
-   ```
-
-   Lệnh này báo sheet tổng thiếu tab `Config` và người quản lý nào chưa chia sẻ quyền.
-
-> Mã ref được lưu trên máy người dùng 30 ngày. Người vào web không có ref vẫn được lưu đầy đủ trong sheet tổng, cột "Người phụ trách" để trống.
+- Bảng được định nghĩa bằng file SQL trong `db/migrations/`. Muốn đổi cấu trúc: thêm file mới (ví dụ `002_...sql`) rồi chạy `npm run db:migrate`. Không sửa file đã chạy.
+- `managers`: người quản lý, mỗi người một mã `ref` (chữ thường không dấu, số, `-`, `_`). Link của người đó là `https://ten-mien/?ref=lan`. Đặt `active = false` để tạm ngưng.
+- `registrations`: mỗi lượt đăng ký, gồm kết quả MBTI, lĩnh vực, mã ref, người quản lý, nguồn UTM, trạng thái và ghi chú.
+- Mã ref được lưu trên máy người dùng 30 ngày. Người vào web không có ref vẫn được lưu đầy đủ, chỉ để trống người quản lý.
+- Ứng dụng dùng kết nối pooled (`DATABASE_URL`); migration dùng kết nối trực tiếp (`DATABASE_URL_UNPOOLED`).
 
 ## Format nội dung trong sheet kết quả
 
@@ -90,7 +67,7 @@ Bật xác minh 2 bước cho Gmail của BTC → *Tài khoản Google → Bảo
 ## Deploy lên Vercel
 
 1. Đẩy code lên GitHub, vào https://vercel.com → *Add New Project* → chọn repo.
-2. *Settings → Environment Variables*: khai báo các biến như `.env.local`. Với `GOOGLE_PRIVATE_KEY`, dán nguyên giá trị có `\n`.
+2. *Settings → Environment Variables*: khai báo các biến như `.env.local` (tối thiểu `DATABASE_URL`).
 3. *Analytics* → bật **Web Analytics** để xem lượt truy cập theo trang (phễu: `/` → `/quiz` → `/linh-vuc` → `/ket-qua` → `/dang-ky` → `/cam-on`) và theo nguồn UTM.
 
 ## Chỉnh nội dung thường gặp

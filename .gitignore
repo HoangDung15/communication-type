@@ -13,3 +13,4 @@ docs/
 .vercel
 .DS_Store
 npm-debug.log*
+.neon
