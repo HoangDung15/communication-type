@@ -1,0 +1,32 @@
+{
+  "name": "communication-type",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "sync-results": "tsx --env-file-if-exists=.env.local scripts/sync-results.ts",
+    "check-sheet": "tsx --env-file=.env.local scripts/check-sheet.ts"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "google-auth-library": "^11.3.2",
+    "next": "^16.4.3",
+    "nodemailer": "^10.3.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.6",
+    "@types/nodemailer": "^8.0.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
