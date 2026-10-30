@@ -2,14 +2,15 @@
 
 import { useEffect } from "react";
 import { attributionStore } from "@/lib/client-store";
-import { normalizeRef } from "@/lib/ref";
+import { normalizeReferralCode } from "@/lib/ref";
 
-// Ghi nhận mã người quản lý (?ref=) và nguồn truy cập (utm_*) ngay khi người dùng vào web.
+// Ghi nhận mã người quản lý (?ref=, có từ link /36) và nguồn truy cập (utm_*) ngay khi người dùng vào web.
 // Link mới nhất có ref sẽ ghi đè ref cũ; nếu link mới không có ref thì giữ ref cũ (30 ngày).
 export function AttributionCapture() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const ref = normalizeRef(params.get("ref"));
+    // ?ref=36 hoặc ?ref=kv36 đều lưu thành "kv36"
+    const ref = normalizeReferralCode(params.get("ref") ?? "");
     const utmSource = params.get("utm_source")?.slice(0, 100) || undefined;
     const utmMedium = params.get("utm_medium")?.slice(0, 100) || undefined;
     const utmCampaign = params.get("utm_campaign")?.slice(0, 100) || undefined;

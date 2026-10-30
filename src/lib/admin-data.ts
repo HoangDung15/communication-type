@@ -1,7 +1,7 @@
 import type { PoolClient } from "pg";
 import { generatePassword, hashPassword, verifyPassword, type CurrentUser } from "./auth";
 import { getPool } from "./db";
-import { normalizeRef } from "./ref";
+import { displayReferralCode, normalizeReferralCode } from "./ref";
 import { isStatus, type StatusId } from "./statuses";
 
 // Truy vấn cho trang /quan-ly. Mọi hàm nhận người dùng hiện tại và tự giới hạn dữ liệu:
@@ -233,10 +233,11 @@ export type CreateManagerResult = { ok: true; username: string; password: string
 
 export async function createManager(input: { name: string; ref: string; username: string }): Promise<CreateManagerResult> {
   const name = input.name.trim().slice(0, 100);
-  const ref = normalizeRef(input.ref);
+  // Admin gõ "36" hay "kv36" đều lưu thành "kv36"
+  const ref = normalizeReferralCode(input.ref);
   const username = normalizeUsername(input.username || input.ref);
   if (name.length < 2) return { ok: false, error: "Vui lòng nhập tên người quản lý" };
-  if (!ref) return { ok: false, error: "Mã ref chỉ gồm chữ thường không dấu, số, - hoặc _ (tối đa 32 ký tự)" };
+  if (!ref) return { ok: false, error: "Mã giới thiệu chỉ gồm chữ thường không dấu, số, - hoặc _ (tối đa 32 ký tự)" };
   if (!username) return { ok: false, error: "Tên đăng nhập gồm 3–32 ký tự: chữ thường không dấu, số, . - _" };
 
   const password = generatePassword();
@@ -251,7 +252,7 @@ export async function createManager(input: { name: string; ref: string; username
     });
   } catch (err) {
     const detail = String((err as { constraint?: string }).constraint ?? "");
-    if (detail.includes("managers_ref")) return { ok: false, error: `Mã ref "${ref}" đã được dùng` };
+    if (detail.includes("managers_ref")) return { ok: false, error: `Mã giới thiệu "${displayReferralCode(ref)}" đã được dùng` };
     if (detail.includes("users_username")) return { ok: false, error: `Tên đăng nhập "${username}" đã được dùng` };
     throw err;
   }

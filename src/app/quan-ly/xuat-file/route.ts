@@ -1,5 +1,6 @@
 import { exportRegistrations, parseFilters } from "@/lib/admin-data";
 import { getCurrentUser } from "@/lib/auth";
+import { displayReferralCode } from "@/lib/ref";
 import { statusOf } from "@/lib/statuses";
 import { formatDateTime } from "@/components/admin/styles";
 
@@ -22,11 +23,11 @@ export async function GET(request: Request) {
   const header = [
     "Thời gian", "Họ và tên", "Năm sinh", "Giới tính", "Công việc / ngành học", "SĐT / Zalo", "Email",
     "Facebook", "Nơi sống", "Khung giờ liên hệ", "MBTI", "Lĩnh vực", "Điểm từng nhóm", "Người phụ trách",
-    "Mã ref", "Nguồn (utm_source)", "Kênh (utm_medium)", "Chiến dịch (utm_campaign)", "Trạng thái", "Ghi chú",
+    "Mã giới thiệu", "Nguồn (utm_source)", "Kênh (utm_medium)", "Chiến dịch (utm_campaign)", "Trạng thái", "Ghi chú",
   ];
   const lines = [header, ...rows.map((r) => [
     formatDateTime(r.createdAt), r.name, r.birthYear, r.gender, r.job, r.phone, r.email, r.facebook, r.city,
-    r.contactTime, r.mbti, r.field, r.scores, r.managerName, r.ref, r.utmSource, r.utmMedium, r.utmCampaign,
+    r.contactTime, r.mbti, r.field, r.scores, r.managerName, r.ref ? displayReferralCode(r.ref) : "", r.utmSource, r.utmMedium, r.utmCampaign,
     statusOf(r.status).label, r.note,
   ])].map((row) => row.map(cell).join(","));
 

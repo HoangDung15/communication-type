@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeReferralCode } from "./ref";
 
 // Dùng chung cho form (trình duyệt) và API (server) để quy tắc kiểm tra luôn giống nhau.
 
@@ -93,7 +94,20 @@ const text = (min: number, max: number, label: string) =>
     .min(min, `Vui lòng nhập ${label}`)
     .max(max, `${label[0].toUpperCase() + label.slice(1)} quá dài (tối đa ${max} ký tự)`);
 
+// Mã người giới thiệu (ví dụ 36 → "kv36"). Việc mã có tồn tại hay không được kiểm tra riêng
+// với danh sách quản lý đang hoạt động (form và API).
+const referralSchema = z
+  .string()
+  .superRefine((v, ctx) => {
+    if (!v.trim()) ctx.addIssue({ code: "custom", message: "Vui lòng nhập mã người giới thiệu bạn" });
+    else if (!normalizeReferralCode(v)) ctx.addIssue({ code: "custom", message: "Mã giới thiệu chưa đúng, ví dụ 36" });
+  })
+  .transform((v) => normalizeReferralCode(v) ?? "");
+
+export const INVALID_REFERRAL = "Mã giới thiệu không tồn tại, vui lòng hỏi lại người đã giới thiệu bạn";
+
 export const formSchema = z.object({
+  referral: referralSchema,
   name: text(2, 100, "họ và tên"),
   birthYear: z
     .string()
@@ -118,7 +132,6 @@ export const registerSchema = formSchema.extend({
   mbti: z.string().regex(/^[EI][SN][TF][JP]$/),
   field: z.string().trim().min(1).max(100),
   scores: optional(40),
-  ref: optional(32),
   utmSource: optional(100),
   utmMedium: optional(100),
   utmCampaign: optional(100),

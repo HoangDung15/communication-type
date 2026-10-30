@@ -1,10 +1,11 @@
 import { isMailConfigured, sendConfirmation } from "@/lib/mail";
 import { isRateLimited } from "@/lib/rate-limit";
-import { normalizeRef } from "@/lib/ref";
-import { registerSchema } from "@/lib/register-schema";
-import { findManager, insertRegistration, type Manager } from "@/lib/registrations";
+import { INVALID_REFERRAL, registerSchema } from "@/lib/register-schema";
+import { findManager, insertRegistration } from "@/lib/registrations";
 
-function json(body: { ok: boolean; error?: string; emailSent?: boolean }, status = 200) {
+type Body = { ok: boolean; error?: string; field?: "referral"; emailSent?: boolean };
+
+function json(body: Body, status = 200) {
   return Response.json(body, { status });
 }
 
@@ -19,14 +20,15 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return json({ ok: false, error: "Thông tin đăng ký chưa hợp lệ" }, 400);
   }
-  const payload = { ...parsed.data, ref: normalizeRef(parsed.data.ref) };
+  const payload = parsed.data;
 
   // Bot điền vào ô bẫy: trả về thành công nhưng không lưu gì.
   if (payload.website) return json({ ok: true });
 
-  let manager: Manager | null = null;
   try {
-    manager = await findManager(payload.ref);
+    // Mã người giới thiệu phải thuộc một người quản lý đang hoạt động
+    const manager = await findManager(payload.referral);
+    if (!manager) return json({ ok: false, error: INVALID_REFERRAL, field: "referral" }, 400);
     await insertRegistration(payload, manager);
   } catch (err) {
     console.error("[register] Lưu đăng ký thất bại:", err);

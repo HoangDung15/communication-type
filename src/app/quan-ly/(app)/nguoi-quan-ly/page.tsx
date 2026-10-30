@@ -5,6 +5,7 @@ import { CreateManagerForm } from "@/components/admin/CreateManagerForm";
 import { ResetPasswordButton } from "@/components/admin/ResetPasswordButton";
 import { adminBtnSecondary, adminCard, formatDateTime } from "@/components/admin/styles";
 import { listManagers } from "@/lib/admin-data";
+import { displayReferralCode } from "@/lib/ref";
 import { requireAdmin } from "@/lib/auth";
 import { toggleManagerAction } from "../../actions";
 
@@ -25,7 +26,8 @@ export default async function ManagersPage() {
       <div>
         <h1 className="text-2xl font-extrabold">Người quản lý</h1>
         <p className="mt-0.5 text-sm text-muted">
-          Mỗi người có một link giới thiệu riêng. Khách đăng ký qua link nào sẽ tự về đúng người đó.
+          Mỗi người có một mã giới thiệu (ví dụ 36) và link riêng (…/36). Khách nhập mã trong form hoặc vào qua link sẽ tự về đúng
+          người đó.
         </p>
       </div>
 
@@ -39,13 +41,16 @@ export default async function ManagersPage() {
       ) : (
         <ul className="grid gap-3 md:grid-cols-2">
           {managers.map((m) => {
-            const link = `${origin}/${m.ref}`;
+            const code = displayReferralCode(m.ref);
+            const link = `${origin}/${code}`;
             return (
               <li key={m.id} className={`${adminCard} flex flex-col gap-3 p-4 ${m.active ? "" : "opacity-70"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-base font-bold">{m.name}</p>
                     <p className="text-xs text-muted">
+                      Mã giới thiệu: <b className="text-body">{code}</b>
+                      {" · "}
                       Tài khoản: <b className="text-body">{m.username ?? "—"}</b>
                       {" · "}
                       {m.lastLoginAt ? `Đăng nhập lần cuối ${formatDateTime(m.lastLoginAt)}` : "Chưa đăng nhập lần nào"}

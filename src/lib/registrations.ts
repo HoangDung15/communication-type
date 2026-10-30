@@ -30,7 +30,7 @@ export async function insertRegistration(p: RegisterPayload, manager: Manager | 
       p.mbti,
       p.field,
       p.scores ?? null,
-      p.ref ?? null,
+      p.referral,
       manager?.id ?? null,
       p.utmSource ?? null,
       p.utmMedium ?? null,

@@ -6,6 +6,7 @@ import { adminBtnPrimary, adminBtnSecondary, adminCard, adminInput, formatDateTi
 import { ArrowLeft, Chat, Mail, Phone } from "@/components/icons";
 import { getRegistration, listManagerOptions } from "@/lib/admin-data";
 import { requireUser } from "@/lib/auth";
+import { displayReferralCode } from "@/lib/ref";
 import { STATUSES } from "@/lib/statuses";
 import { assignManagerAction, updateStatusAction } from "../../../actions";
 
@@ -38,7 +39,8 @@ export default async function RegistrationDetailPage({ params }: Props) {
     ["Kết quả MBTI", <span key="m"><b>{r.mbti}</b>{r.scores && <span className="ml-1.5 text-muted">({r.scores})</span>}</span>],
     ["Lĩnh vực", <span key="l">{r.field} · <a href={resultHref} target="_blank" rel="noopener noreferrer" className="text-brand-dark hover:underline">Xem nội dung kết quả</a></span>],
     ["Người phụ trách", r.managerName ?? "Chưa có"],
-    ["Nguồn", [r.ref && `Link của ${r.ref}`, source].filter(Boolean).join(" · ") || "Không rõ"],
+    ["Mã giới thiệu", r.ref ? displayReferralCode(r.ref) : "Không có"],
+    ["Nguồn truy cập", source || "Không rõ"],
     ["Đăng ký lúc", formatDateTime(r.createdAt)],
     ["Cập nhật lần cuối", r.updatedAt ? formatDateTime(r.updatedAt) : "Chưa cập nhật"],
   ];

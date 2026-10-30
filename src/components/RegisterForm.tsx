@@ -7,12 +7,14 @@ import { AlertCircle, ArrowLeft } from "./icons";
 import { btnPrimary, iconBtn } from "./ui";
 import { attributionStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
 import { formatScores } from "@/lib/mbti";
-import { formSchema, GENDERS, suggestEmail, type FormField, type FormValues } from "@/lib/register-schema";
+import { displayReferralCode, normalizeReferralCode, REF_PREFIX } from "@/lib/ref";
+import { formSchema, GENDERS, INVALID_REFERRAL, suggestEmail, type FormField, type FormValues } from "@/lib/register-schema";
 import { site } from "@/lib/site";
 
 type Values = Record<FormField, string>;
 
 const EMPTY: Values = {
+  referral: "",
   name: "",
   birthYear: "",
   gender: "",
@@ -24,23 +26,27 @@ const EMPTY: Values = {
   contactTime: "",
 };
 
-const FIELD_ORDER: FormField[] = ["name", "birthYear", "gender", "job", "phone", "email", "facebook", "city", "contactTime"];
+const FIELD_ORDER: FormField[] = ["referral", "name", "birthYear", "gender", "job", "phone", "email", "facebook", "city", "contactTime"];
 
-function validate(values: Values) {
+// validCodes = null: chưa lấy được danh sách mã, bỏ qua kiểm tra mã ở trình duyệt (API vẫn kiểm tra).
+function validate(values: Values, validCodes: string[] | null) {
   const parsed = formSchema.safeParse(values as FormValues);
-  if (parsed.success) return { data: parsed.data, errors: {} as Partial<Values> };
   const errors: Partial<Values> = {};
-  for (const issue of parsed.error.issues) {
-    const key = issue.path[0] as FormField;
-    if (!errors[key]) errors[key] = issue.message;
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0] as FormField;
+      if (!errors[key]) errors[key] = issue.message;
+    }
   }
-  return { data: null, errors };
+  const code = normalizeReferralCode(values.referral);
+  if (!errors.referral && code && validCodes && !validCodes.includes(code)) errors.referral = INVALID_REFERRAL;
+  return { data: parsed.success && !errors.referral ? parsed.data : null, errors };
 }
 
 const inputBase =
   "w-full rounded-[14px] border-[1.5px] bg-white px-3.5 text-base text-ink placeholder:text-[#a8988a] transition-colors focus:outline-none focus:border-sun-deep";
 
-export function RegisterForm() {
+export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
   const router = useRouter();
   const [result, setResult] = useState<StoredResult | null>(null);
   const [values, setValues] = useState<Values>(EMPTY);
@@ -56,11 +62,16 @@ export function RegisterForm() {
     if (!r) router.replace("/quiz");
     else if (!r.field) router.replace("/linh-vuc");
     else setResult(r);
-  }, [router]);
+    // Vào bằng link của quản lý (/kv36 hoặc ?ref=kv36) thì điền sẵn mã, khách vẫn sửa được
+    const ref = attributionStore.get()?.ref;
+    if (ref && (!validCodes || validCodes.includes(ref))) {
+      setValues((v) => (v.referral ? v : { ...v, referral: displayReferralCode(ref) }));
+    }
+  }, [router, validCodes]);
 
   // Chỉ báo lỗi cho ô người dùng đã rời khỏi (hoặc mọi ô sau khi đã bấm gửi), tránh báo lỗi khi đang gõ dở.
   function showErrors(next: Values, touchedNow: Set<FormField>, all = triedSubmit) {
-    const found = validate(next).errors;
+    const found = validate(next, validCodes).errors;
     const visible: Partial<Values> = {};
     for (const f of FIELD_ORDER) if (found[f] && (all || touchedNow.has(f))) visible[f] = found[f];
     setErrors(visible);
@@ -89,7 +100,7 @@ export function RegisterForm() {
     setTriedSubmit(true);
     setServerError(null);
 
-    const { data, errors: found } = validate(values);
+    const { data, errors: found } = validate(values, validCodes);
     setErrors(found);
     if (!data) {
       const first = FIELD_ORDER.find((f) => found[f]);
@@ -108,14 +119,20 @@ export function RegisterForm() {
           mbti: result.type,
           field: result.field,
           scores: formatScores(result.scores),
-          ref: attribution?.ref,
           utmSource: attribution?.utmSource,
           utmMedium: attribution?.utmMedium,
           utmCampaign: attribution?.utmCampaign,
           website: honeypot.current?.value || undefined,
         }),
       });
-      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; emailSent?: boolean };
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; field?: string; emailSent?: boolean };
+      // Mã giới thiệu sai (ví dụ quản lý vừa bị tạm ngưng): báo ngay dưới ô mã
+      if (body.field === "referral" && body.error) {
+        setErrors((e) => ({ ...e, referral: body.error }));
+        document.getElementById("f-referral")?.focus();
+        setSubmitting(false);
+        return;
+      }
       if (!res.ok || !body.ok) throw new Error(body.error || "Gửi đăng ký chưa thành công");
       thanksStore.set({ name: data.name, email: data.email, emailSent: Boolean(body.emailSent) });
       router.push("/cam-on");
@@ -169,6 +186,23 @@ export function RegisterForm() {
         )}
 
         <form noValidate onSubmit={onSubmit} className="mt-[22px] flex flex-col gap-[18px]">
+          <Field label="Mã người giới thiệu" field="referral" error={errors.referral} hint="Nhập mã số của người đã giới thiệu bạn, ví dụ 36">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-bold text-muted">
+                {REF_PREFIX.toUpperCase()}
+              </span>
+              <input
+                {...fieldProps("referral")}
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={12}
+                placeholder="36"
+                className={`${fieldProps("referral").className} pl-12! font-semibold tracking-wide`}
+              />
+            </div>
+          </Field>
+
           <Field label="Họ và tên" field="name" error={errors.name}>
             <input {...fieldProps("name")} type="text" autoComplete="name" placeholder="Nguyễn Văn A" />
           </Field>
