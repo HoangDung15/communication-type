@@ -1,7 +1,7 @@
 import type { PoolClient } from "pg";
 import { generatePassword, hashPassword, verifyPassword, type CurrentUser } from "./auth";
 import { getPool } from "./db";
-import { displayReferralCode, normalizeReferralCode } from "./ref";
+import { DEFAULT_REFERRAL, displayReferralCode, normalizeReferralCode } from "./ref";
 import { isStatus, type StatusId } from "./statuses";
 
 // Truy vấn cho trang /quan-ly. Mọi hàm nhận người dùng hiện tại và tự giới hạn dữ liệu:
@@ -122,6 +122,7 @@ export type RegistrationDetail = {
   ref: string | null;
   managerId: number | null;
   managerName: string | null;
+  managerRef: string | null;
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
@@ -133,7 +134,7 @@ export type RegistrationDetail = {
 const DETAIL_COLUMNS = `r.id::int, r.created_at AS "createdAt", r.updated_at AS "updatedAt", r.name,
   r.birth_year AS "birthYear", r.gender, r.job, r.phone, r.email, r.facebook, r.city,
   r.contact_time AS "contactTime", r.mbti, r.field, r.scores, r.ref, r.manager_id AS "managerId",
-  m.name AS "managerName", r.utm_source AS "utmSource", r.utm_medium AS "utmMedium",
+  m.name AS "managerName", m.ref AS "managerRef", r.utm_source AS "utmSource", r.utm_medium AS "utmMedium",
   r.utm_campaign AS "utmCampaign", r.status, r.note, r.answers`;
 
 export async function getRegistration(user: CurrentUser, id: number): Promise<RegistrationDetail | null> {
@@ -159,7 +160,7 @@ export async function exportRegistrations(user: CurrentUser, f: Filters): Promis
 export async function updateRegistration(
   user: CurrentUser,
   id: number,
-  changes: { status?: StatusId; note?: string; managerId?: number | null },
+  changes: { status?: StatusId; note?: string },
 ): Promise<boolean> {
   const sets: string[] = [];
   const params: unknown[] = [id];
@@ -169,8 +170,6 @@ export async function updateRegistration(
   };
   if (changes.status) sets.push(`status = ${p(changes.status)}`);
   if (changes.note !== undefined) sets.push(`note = ${p(changes.note.slice(0, 2000) || null)}`);
-  // Chỉ admin được chuyển khách cho người quản lý khác
-  if (changes.managerId !== undefined && user.role === "admin") sets.push(`manager_id = ${p(changes.managerId)}`);
   if (!sets.length) return false;
 
   const scope = user.role === "manager" ? ` AND manager_id = ${p(user.managerId)}` : "";
@@ -208,6 +207,35 @@ export async function listManagers(): Promise<ManagerRow[]> {
 export async function listManagerOptions(): Promise<{ id: number; name: string; active: boolean }[]> {
   const { rows } = await getPool().query("SELECT id, name, active FROM managers ORDER BY active DESC, name");
   return rows;
+}
+
+// ---- Chuyển đơn ----
+// Đơn thuộc ai thì mãi thuộc người đó. Ngoại lệ duy nhất: đơn của BNV (hoặc đơn chưa có người phụ trách)
+// được chuyển MỘT LẦN cho một người quản lý KV đang hoạt động. Người được chuyển: admin, hoặc chính tài khoản BNV.
+
+export function canTransfer(user: CurrentUser, r: { managerRef: string | null; managerId: number | null }): boolean {
+  const fromBnv = r.managerRef === DEFAULT_REFERRAL;
+  if (user.role === "admin") return fromBnv || r.managerId === null;
+  return fromBnv && user.managerId === r.managerId;
+}
+
+// Người nhận: mọi quản lý đang hoạt động trừ BNV
+export async function listTransferTargets(): Promise<{ id: number; name: string }[]> {
+  const { rows } = await getPool().query("SELECT id, name FROM managers WHERE active AND ref <> $1 ORDER BY name", [DEFAULT_REFERRAL]);
+  return rows;
+}
+
+export async function transferRegistration(user: CurrentUser, id: number, targetManagerId: number): Promise<boolean> {
+  // Mọi điều kiện kiểm tra trong cùng một câu lệnh để không ai lách được bằng cách gọi thẳng
+  const res = await getPool().query(
+    `UPDATE registrations r SET manager_id = $2, updated_at = now()
+      WHERE r.id = $1
+        AND (r.manager_id IS NULL OR r.manager_id = (SELECT id FROM managers WHERE ref = $3))
+        AND EXISTS (SELECT 1 FROM managers t WHERE t.id = $2 AND t.active AND t.ref <> $3)
+        AND ($4::boolean OR (r.manager_id IS NOT NULL AND r.manager_id = $5))`,
+    [id, targetManagerId, DEFAULT_REFERRAL, user.role === "admin", user.managerId],
+  );
+  return (res.rowCount ?? 0) > 0;
 }
 
 export function normalizeUsername(value: string): string | undefined {

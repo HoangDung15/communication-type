@@ -10,6 +10,7 @@ import {
   normalizeUsername,
   resetPassword,
   setManagerActive,
+  transferRegistration,
   updateRegistration,
   type CreateManagerResult,
 } from "@/lib/admin-data";
@@ -67,13 +68,17 @@ export async function updateNoteAction(_prev: { saved?: boolean } | null, fd: Fo
   return { saved };
 }
 
-export async function assignManagerAction(fd: FormData): Promise<void> {
-  const user = await requireAdmin();
+// Chuyển đơn của BNV cho một quản lý KV (quy tắc kiểm tra trong transferRegistration).
+export async function transferAction(_prev: { error?: string } | null, fd: FormData): Promise<{ error?: string }> {
+  const user = await requireUser();
   const id = Number(str(fd, "id"));
-  const manager = str(fd, "managerId");
-  if (!id) return;
-  await updateRegistration(user, id, { managerId: manager ? Number(manager) : null });
+  const target = Number(str(fd, "managerId"));
+  if (!id || !target) return { error: "Vui lòng chọn người nhận đơn" };
+  const ok = await transferRegistration(user, id, target);
+  if (!ok) return { error: "Không chuyển được đơn này (chỉ đơn của BNV mới được chuyển, và chỉ chuyển một lần)" };
   revalidatePath("/quan-ly", "layout");
+  // BNV không còn quyền xem đơn sau khi đã chuyển: đưa về danh sách
+  redirect(user.role === "admin" ? `/quan-ly/dang-ky/${id}` : "/quan-ly");
 }
 
 export async function createManagerAction(_prev: CreateManagerResult | null, fd: FormData): Promise<CreateManagerResult> {

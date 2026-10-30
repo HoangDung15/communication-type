@@ -2,15 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/admin/CopyButton";
 import { NoteForm } from "@/components/admin/NoteForm";
+import { TransferForm } from "@/components/admin/TransferForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminBtnPrimary, adminBtnSecondary, adminCard, adminInput, formatDateTime, zaloLink } from "@/components/admin/styles";
 import { ArrowLeft, Chat, Mail, Phone } from "@/components/icons";
-import { getRegistration, listManagerOptions } from "@/lib/admin-data";
+import { canTransfer, getRegistration, listTransferTargets } from "@/lib/admin-data";
 import { requireUser } from "@/lib/auth";
 import { displayReferralCode } from "@/lib/ref";
 import { answerRows, answersShort, registrationText } from "@/lib/registration-text";
 import { STATUSES } from "@/lib/statuses";
-import { assignManagerAction, updateStatusAction } from "../../../actions";
+import { updateStatusAction } from "../../../actions";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -19,11 +20,11 @@ export default async function RegistrationDetailPage({ params }: Props) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 
-  const [r, managers] = await Promise.all([
-    getRegistration(user, id),
-    user.role === "admin" ? listManagerOptions() : Promise.resolve([]),
-  ]);
+  const r = await getRegistration(user, id);
   if (!r) notFound();
+  // Chỉ đơn của BNV mới chuyển được (admin hoặc chính BNV thực hiện)
+  const transferable = canTransfer(user, r);
+  const targets = transferable ? await listTransferTargets() : [];
 
   const age = new Date().getFullYear() - r.birthYear;
   const resultHref = `/ket-qua?mbti=${r.mbti}&linh-vuc=${encodeURIComponent(r.field)}`;
@@ -123,26 +124,10 @@ export default async function RegistrationDetailPage({ params }: Props) {
           })}
         </form>
 
-        {user.role === "admin" && (
-          <form action={assignManagerAction} className="mt-2 flex flex-wrap items-end gap-2 border-t border-line pt-4">
-            <input type="hidden" name="id" value={r.id} />
-            <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs font-semibold text-muted">
-              Chuyển cho người quản lý
-              {/* key: dựng lại ô chọn sau khi lưu để hiện đúng giá trị mới */}
-              <select key={r.managerId ?? "none"} name="managerId" defaultValue={r.managerId ?? ""} className={adminInput}>
-                <option value="">Chưa có người phụ trách</option>
-                {managers.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                    {m.active ? "" : " (đã ngưng)"}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="submit" className={adminBtnSecondary}>
-              Lưu người phụ trách
-            </button>
-          </form>
+        {transferable && (
+          <div className="mt-2 border-t border-line pt-4">
+            <TransferForm id={r.id} targets={targets} />
+          </div>
         )}
       </section>
 
