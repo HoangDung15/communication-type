@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { Blobs, SiteHeader } from "./SiteHeader";
 import { AlertCircle, ArrowLeft } from "./icons";
 import { btnPrimary, iconBtn } from "./ui";
-import { attributionStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
+import { attributionStore, quizStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
 import { formatScores } from "@/lib/mbti";
-import { displayReferralCode, normalizeReferralCode, REF_PREFIX } from "@/lib/ref";
+import { DEFAULT_REFERRAL, displayReferralCode, normalizeReferralCode } from "@/lib/ref";
 import { formSchema, GENDERS, INVALID_REFERRAL, suggestEmail, type FormField, type FormValues } from "@/lib/register-schema";
 import { site } from "@/lib/site";
 
@@ -55,6 +55,7 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
   const [touched, setTouched] = useState<Set<FormField>>(() => new Set());
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [referralFromLink, setReferralFromLink] = useState(false);
   const honeypot = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -62,10 +63,14 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
     if (!r) router.replace("/quiz");
     else if (!r.field) router.replace("/linh-vuc");
     else setResult(r);
-    // Vào bằng link của quản lý (/kv36 hoặc ?ref=kv36) thì điền sẵn mã, khách vẫn sửa được
+    // Vào bằng link của quản lý (/36): đã có mã nên ẩn hẳn ô nhập.
+    // Vào link chung: điền sẵn mã mặc định BNV, khách vẫn sửa được nếu có người giới thiệu khác.
     const ref = attributionStore.get()?.ref;
     if (ref && (!validCodes || validCodes.includes(ref))) {
       setValues((v) => (v.referral ? v : { ...v, referral: displayReferralCode(ref) }));
+      setReferralFromLink(true);
+    } else if (!validCodes || validCodes.includes(DEFAULT_REFERRAL)) {
+      setValues((v) => (v.referral ? v : { ...v, referral: displayReferralCode(DEFAULT_REFERRAL) }));
     }
   }, [router, validCodes]);
 
@@ -111,6 +116,9 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
     setSubmitting(true);
     try {
       const attribution = attributionStore.get();
+      // Câu trả lời 12 câu (khách làm bài trước khi có tính năng này thì lấy từ tiến trình đã lưu)
+      const quizAnswers = quizStore.get()?.answers;
+      const answers = result.answers ?? (quizAnswers?.every(Boolean) ? quizAnswers.join("") : undefined);
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,6 +127,7 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
           mbti: result.type,
           field: result.field,
           scores: formatScores(result.scores),
+          answers,
           utmSource: attribution?.utmSource,
           utmMedium: attribution?.utmMedium,
           utmCampaign: attribution?.utmCampaign,
@@ -129,7 +138,8 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
       // Mã giới thiệu sai (ví dụ quản lý vừa bị tạm ngưng): báo ngay dưới ô mã
       if (body.field === "referral" && body.error) {
         setErrors((e) => ({ ...e, referral: body.error }));
-        document.getElementById("f-referral")?.focus();
+        setReferralFromLink(false);
+        setTimeout(() => document.getElementById("f-referral")?.focus(), 0);
         setSubmitting(false);
         return;
       }
@@ -186,22 +196,18 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
         )}
 
         <form noValidate onSubmit={onSubmit} className="mt-[22px] flex flex-col gap-[18px]">
-          <Field label="Mã người giới thiệu" field="referral" error={errors.referral} hint="Nhập mã số của người đã giới thiệu bạn, ví dụ 36">
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-bold text-muted">
-                {REF_PREFIX.toUpperCase()}
-              </span>
-              <input
-                {...fieldProps("referral")}
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                maxLength={12}
-                placeholder="36"
-                className={`${fieldProps("referral").className} pl-12! font-semibold tracking-wide`}
-              />
-            </div>
-          </Field>
+          {/* Link có mã: ẩn ô mã (mã vẫn được gửi kèm). Chỉ hiện lại nếu mã đó không còn hợp lệ. */}
+          {(!referralFromLink || errors.referral) && (
+            <Field
+              label="Mã người giới thiệu"
+              field="referral"
+              optional
+              error={errors.referral}
+              hint={`Mặc định là ${displayReferralCode(DEFAULT_REFERRAL)}. Nếu có người giới thiệu bạn, nhập mã số của họ (ví dụ 36).`}
+            >
+              <input {...fieldProps("referral")} type="text" autoComplete="off" autoCapitalize="characters" maxLength={12} placeholder="VD: 36" />
+            </Field>
+          )}
 
           <Field label="Họ và tên" field="name" error={errors.name}>
             <input {...fieldProps("name")} type="text" autoComplete="name" placeholder="Nguyễn Văn A" />
@@ -310,6 +316,7 @@ function Field({
   error,
   hint,
   after,
+  optional,
   children,
 }: {
   label: string;
@@ -317,12 +324,14 @@ function Field({
   error?: string;
   hint?: string;
   after?: React.ReactNode;
+  optional?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={`f-${field}`} className="text-sm font-semibold">
-        {label} <span className="text-brand-dark">*</span>
+        {label}{" "}
+        {optional ? <span className="font-normal text-muted">(không bắt buộc)</span> : <span className="text-brand-dark">*</span>}
       </label>
       {hint && <span className="-mt-0.5 text-[13px] leading-snug text-muted">{hint}</span>}
       {children}

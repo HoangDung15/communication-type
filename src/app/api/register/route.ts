@@ -1,5 +1,6 @@
 import { isMailConfigured, sendConfirmation } from "@/lib/mail";
 import { isRateLimited } from "@/lib/rate-limit";
+import { DEFAULT_REFERRAL } from "@/lib/ref";
 import { INVALID_REFERRAL, registerSchema } from "@/lib/register-schema";
 import { findManager, insertRegistration } from "@/lib/registrations";
 
@@ -26,9 +27,16 @@ export async function POST(request: Request) {
   if (payload.website) return json({ ok: true });
 
   try {
-    // Mã người giới thiệu phải thuộc một người quản lý đang hoạt động
-    const manager = await findManager(payload.referral);
-    if (!manager) return json({ ok: false, error: INVALID_REFERRAL, field: "referral" }, 400);
+    // Có mã: mã phải thuộc một người quản lý đang hoạt động.
+    // Không có mã: dùng mã mặc định BNV (nếu BNV đang tạm ngưng thì để "Chưa có người phụ trách").
+    let manager;
+    if (payload.referral) {
+      manager = await findManager(payload.referral);
+      if (!manager) return json({ ok: false, error: INVALID_REFERRAL, field: "referral" }, 400);
+    } else {
+      manager = await findManager(DEFAULT_REFERRAL);
+      if (manager) payload.referral = DEFAULT_REFERRAL;
+    }
     await insertRegistration(payload, manager);
   } catch (err) {
     console.error("[register] Lưu đăng ký thất bại:", err);

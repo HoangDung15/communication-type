@@ -8,6 +8,9 @@ export function normalizeRef(value: string | null | undefined): string | undefin
 // Mã người quản lý có dạng "kv" + số (kv36 … kv42). Khách chỉ cần nhập phần số.
 export const REF_PREFIX = "kv";
 
+// Mã mặc định khi khách vào link chung (không có mã) và không nhập mã nào.
+export const DEFAULT_REFERRAL = "bnv";
+
 // Mã khách nhập trong form → mã ref: "36", "KV36", "kv 36" đều thành "kv36".
 export function normalizeReferralCode(value: string): string | undefined {
   const compact = value.replace(/\s+/g, "").toLowerCase();

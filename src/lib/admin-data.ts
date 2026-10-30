@@ -127,13 +127,14 @@ export type RegistrationDetail = {
   utmCampaign: string | null;
   status: StatusId;
   note: string | null;
+  answers: string | null;
 };
 
 const DETAIL_COLUMNS = `r.id::int, r.created_at AS "createdAt", r.updated_at AS "updatedAt", r.name,
   r.birth_year AS "birthYear", r.gender, r.job, r.phone, r.email, r.facebook, r.city,
   r.contact_time AS "contactTime", r.mbti, r.field, r.scores, r.ref, r.manager_id AS "managerId",
   m.name AS "managerName", r.utm_source AS "utmSource", r.utm_medium AS "utmMedium",
-  r.utm_campaign AS "utmCampaign", r.status, r.note`;
+  r.utm_campaign AS "utmCampaign", r.status, r.note, r.answers`;
 
 export async function getRegistration(user: CurrentUser, id: number): Promise<RegistrationDetail | null> {
   const { rows } = await getPool().query<RegistrationDetail>(

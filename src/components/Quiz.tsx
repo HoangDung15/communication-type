@@ -41,7 +41,7 @@ export function Quiz() {
     (final: (Choice | null)[]) => {
       const result = computeResult(final);
       if (!result) return;
-      resultStore.set(result);
+      resultStore.set({ ...result, answers: final.join("") });
       router.push("/linh-vuc");
     },
     [router],

@@ -146,6 +146,7 @@ export default async function RegistrationsPage({ searchParams }: Props) {
                     {formatDateTime(r.createdAt)} · {r.city}
                     {isAdmin && ` · ${r.managerName ?? "Chưa có người phụ trách"}`}
                   </span>
+                  <span className="mt-1 self-end text-sm font-semibold text-brand-dark">Xem chi tiết →</span>
                 </Link>
               </li>
             ))}
@@ -163,6 +164,9 @@ export default async function RegistrationsPage({ searchParams }: Props) {
                   <th className="px-4 py-3 font-semibold">Nơi sống</th>
                   {isAdmin && <th className="px-4 py-3 font-semibold">Người phụ trách</th>}
                   <th className="px-4 py-3 font-semibold">Trạng thái</th>
+                  <th className="px-4 py-3">
+                    <span className="sr-only">Chi tiết</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -186,6 +190,11 @@ export default async function RegistrationsPage({ searchParams }: Props) {
                     {isAdmin && <td className="px-4 py-3">{r.managerName ?? <span className="text-muted">Chưa có</span>}</td>}
                     <td className="px-4 py-3">
                       <StatusBadge status={r.status} />
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <Link href={`/quan-ly/dang-ky/${r.id}`} className={`${adminBtnSecondary} h-9`}>
+                        Xem chi tiết
+                      </Link>
                     </td>
                   </tr>
                 ))}

@@ -47,7 +47,8 @@ export const quizStore = {
   clear: () => remove(KEYS.quiz),
 };
 
-export type StoredResult = QuizResult & { field?: string };
+// answers: 12 câu trả lời theo thứ tự, ví dụ "abaabbaabbab"
+export type StoredResult = QuizResult & { field?: string; answers?: string };
 
 export const resultStore = {
   get: () => read<StoredResult>("local", KEYS.result),
