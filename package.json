@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "sync-results": "tsx --env-file-if-exists=.env.local scripts/sync-results.ts",
-    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts"
+    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
+    "admin:create": "tsx --env-file-if-exists=.env.local scripts/create-admin.ts"
   },
   "dependencies": {
     "@neon/config": "^1.9.6",
