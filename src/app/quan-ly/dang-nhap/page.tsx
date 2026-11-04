@@ -18,7 +18,7 @@ export default async function LoginPage() {
       <main className="relative w-full max-w-[400px] rounded-[28px] border border-line bg-white px-6 py-8 sm:px-8">
         <div className="flex items-center gap-2">
           <SunLogo />
-          <span className="text-[15px] font-bold">MBTI · Giao tiếp</span>
+          <span className="text-[15px] font-bold">BETTER TALK, BETTER WORK</span>
         </div>
         <h1 className="mt-6 text-2xl font-extrabold">Đăng nhập quản lý</h1>
         <p className="mt-1.5 text-[15px] text-body">Dành cho đội ngũ tư vấn xem và chăm sóc khách đăng ký.</p>

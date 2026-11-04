@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Quiz } from "@/components/Quiz";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Làm bài | MBTI · Giao tiếp" };
+// Deep link cũ: bài test giờ nằm trong landing (#bai-test).
+export const metadata: Metadata = { title: "Làm bài | BETTER TALK, BETTER WORK" };
 
 export default function QuizPage() {
-  return <Quiz />;
+  redirect("/#bai-test");
 }

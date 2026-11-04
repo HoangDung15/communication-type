@@ -24,6 +24,20 @@ export type ParsedResult = { tagline: string | null; notes: string[]; sections: 
 const EMOJI_START = /^(?:\p{Extended_Pictographic}|\p{Regional_Indicator})[️‍\p{Extended_Pictographic}]*\s*/u;
 const BULLET_START = /^[•●▪◦\-–*+]\s*/;
 
+/** Bỏ các dấu markdown còn sót từ sheet (**, *, #, __) để không hiện nguyên văn trong modal. */
+export function stripMarkdown(s: string): string {
+  let t = s.trim();
+  // Heading markdown còn lọt vào body: "# TIÊU ĐỀ" -> "TIÊU ĐỀ"
+  t = t.replace(/^#{1,6}\s+/, "").replace(/^#{1,6}$/, "");
+  // Bold/italic: **text** -> text, *text* -> text, __text__ -> text
+  t = t.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1");
+  // Cặp *...* còn lại trên cả dòng (italic): *text* -> text
+  if (/^\*.*\*$/.test(t) && t.length > 2) t = t.slice(1, -1).trim();
+  // Dấu * lẻ còn sót ở đầu/cuối dòng
+  t = t.replace(/^\*+\s*/, "").replace(/\s*\*+$/, "");
+  return t.trim();
+}
+
 function toneOf(title: string): Tone {
   const t = title.toLowerCase();
   if (/mẹo|gợi ý|lời khuyên/.test(t)) return "tip";
@@ -61,7 +75,8 @@ export function parseResult(raw: string): ParsedResult {
     }
 
     if (EMOJI_START.test(line)) {
-      const title = line.replace(EMOJI_START, "").trim();
+      const title = stripMarkdown(line.replace(EMOJI_START, ""));
+      if (!title) continue;
       if (current && isGroupTitle(title)) {
         group = { kind: "group", title: title.slice(0, -1).trim(), tone: toneOf(title), items: [] };
         current.blocks.push(group);
@@ -76,30 +91,34 @@ export function parseResult(raw: string): ParsedResult {
     // Phần giới thiệu trước mục đầu tiên
     if (!current) {
       if (tagline === null && line.includes("|")) {
-        tagline = line.split("|").slice(1).join("|").trim() || null;
+        tagline = stripMarkdown(line.split("|").slice(1).join("|")) || null;
         continue;
       }
       if (/^\(.*\)$/.test(line)) {
-        notes.push(line.slice(1, -1).trim());
+        notes.push(stripMarkdown(line.slice(1, -1)));
         continue;
       }
     }
 
-    if (isGroupTitle(line)) {
+    if (isGroupTitle(stripMarkdown(line))) {
+      const cleanTitle = stripMarkdown(line);
       // Tiêu đề ngay sau một nhóm chưa có nội dung (ví dụ "👉 Mẹo:" rồi "Thêm 1 câu nhỏ:")
       // thì là tiêu đề phụ bên trong nhóm đó.
       if (group && group.items.length === 0) {
-        group.items.push({ kind: "subhead", text: line.slice(0, -1).trim() });
+        group.items.push({ kind: "subhead", text: cleanTitle.slice(0, -1).trim() });
         continue;
       }
-      group ={ kind: "group", title: line.slice(0, -1).trim(), tone: toneOf(line), items: [] };
+      group ={ kind: "group", title: cleanTitle.slice(0, -1).trim(), tone: toneOf(line), items: [] };
       ensureSection().blocks.push(group);
       continue;
     }
 
+    const rawText = BULLET_START.test(line) ? line.replace(BULLET_START, "") : line;
+    const text = stripMarkdown(rawText);
+    if (!text) continue;
     const item: Item = BULLET_START.test(line)
-      ? { kind: "bullet", text: line.replace(BULLET_START, "") }
-      : { kind: "para", text: line };
+      ? { kind: "bullet", text }
+      : { kind: "para", text };
     if (group) group.items.push(item);
     else ensureSection().blocks.push(item);
   }

@@ -27,7 +27,8 @@ export default async function RegistrationDetailPage({ params }: Props) {
   const targets = transferable ? await listTransferTargets() : [];
 
   const age = new Date().getFullYear() - r.birthYear;
-  const resultHref = `/ket-qua?mbti=${r.mbti}&linh-vuc=${encodeURIComponent(r.field)}`;
+  const hasResult = Boolean(r.mbti && r.field);
+  const resultHref = hasResult ? `/ket-qua?mbti=${r.mbti}&linh-vuc=${encodeURIComponent(r.field ?? "")}` : null;
   const source = [r.utmSource, r.utmMedium, r.utmCampaign].filter(Boolean).join(" / ");
 
   const info: [string, React.ReactNode][] = [
@@ -39,9 +40,13 @@ export default async function RegistrationDetailPage({ params }: Props) {
     ["Facebook", <a key="f" href={r.facebook} target="_blank" rel="noopener noreferrer" className="break-all text-brand-dark hover:underline">{r.facebook}</a>],
     ["Nơi sống", r.city],
     ["Khung giờ liên hệ", r.contactTime],
-    ["Kết quả MBTI", <span key="m"><b>{r.mbti}</b>{r.scores && <span className="ml-1.5 text-muted">({r.scores})</span>}</span>],
+    ["Kết quả MBTI", hasResult
+      ? <span key="m"><b>{r.mbti}</b>{r.scores && <span className="ml-1.5 text-muted">({r.scores})</span>}</span>
+      : <span key="m" className="text-muted">Chưa làm test</span>],
     ["Câu trả lời", answersShort(r.answers) ?? "Không có"],
-    ["Lĩnh vực", <span key="l">{r.field} · <a href={resultHref} target="_blank" rel="noopener noreferrer" className="text-brand-dark hover:underline">Xem nội dung kết quả</a></span>],
+    ["Lĩnh vực", hasResult && resultHref
+      ? <span key="l">{r.field} · <a href={resultHref} target="_blank" rel="noopener noreferrer" className="text-brand-dark hover:underline">Xem nội dung kết quả</a></span>
+      : <span key="l" className="text-muted">Chưa làm test</span>],
     ["Người phụ trách", r.managerName ?? "Chưa có"],
     ["Mã giới thiệu", r.ref ? displayReferralCode(r.ref) : "Không có"],
     ["Nguồn truy cập", source || "Không rõ"],
@@ -61,7 +66,7 @@ export default async function RegistrationDetailPage({ params }: Props) {
           <div>
             <h1 className="text-2xl font-extrabold">{r.name}</h1>
             <p className="mt-1 text-sm text-muted">
-              <b className="text-ink">{r.mbti}</b> · {r.field} · {r.city}
+              {hasResult ? <><b className="text-ink">{r.mbti}</b> · {r.field} · </> : <>Chưa làm test · </>}{r.city}
             </p>
           </div>
           <StatusBadge status={r.status} />
