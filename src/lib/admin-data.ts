@@ -68,8 +68,8 @@ export type RegistrationRow = {
   createdAt: Date;
   name: string;
   phone: string;
-  mbti: string;
-  field: string;
+  mbti: string | null;
+  field: string | null;
   city: string;
   status: StatusId;
   managerName: string | null;
@@ -116,8 +116,8 @@ export type RegistrationDetail = {
   facebook: string;
   city: string;
   contactTime: string;
-  mbti: string;
-  field: string;
+  mbti: string | null;
+  field: string | null;
   scores: string | null;
   ref: string | null;
   managerId: number | null;

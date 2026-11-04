@@ -128,8 +128,9 @@ export type FormField = keyof FormValues;
 const optional = (max: number) => z.string().trim().max(max).optional();
 
 export const registerSchema = formSchema.extend({
-  mbti: z.string().regex(/^[EI][SN][TF][JP]$/),
-  field: z.string().trim().min(1).max(100),
+  // Đăng ký trực tiếp không cần làm test: mbti/field để trống (NULL trong DB).
+  mbti: z.string().regex(/^[EI][SN][TF][JP]$/).optional(),
+  field: z.string().trim().min(1).max(100).optional(),
   scores: optional(40),
   answers: z.string().regex(/^[ab]{12}$/).optional(),
   utmSource: optional(100),

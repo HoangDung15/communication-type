@@ -37,22 +37,22 @@ Thiết kế lại hành trình người dùng của project, **giữ nguyên ng
 - Sau câu cuối, cho chọn **lĩnh vực** như bước cuối của bài test. Chỉ hiển thị các lĩnh vực có nội dung kết quả đầy đủ cho MBTI vừa tính được.
 - Khi người dùng xác nhận lĩnh vực, chuyển thẳng đến phần trả kết quả; không thêm một trang trung gian hoặc bắt đăng ký mới cho xem kết quả.
 
-### 4. Giới thiệu kết quả bằng ba vòng tròn
+### 4. Giới thiệu kết quả bằng ba vòng tròn (spotlight + modal)
 
-Kết quả hiển thị như ba vòng tròn giao nhau, mỗi vòng mang một phần nội dung từ sheet:
+Kết quả hiển thị như **chỉ ba vòng tròn lớn giao nhau**, không còn thẻ nội dung dàn sẵn dưới sơ đồ:
 
-1. **Giao điểm thứ nhất — Bạn là ai?**
-2. **Giao điểm thứ hai — Phong cách giao tiếp của bạn là gì?**
-3. **Giao điểm thứ ba — Lĩnh vực của bạn cần người như thế nào?**
-4. **Điểm giao màu vàng** tại vùng giao của cả ba vòng: chân dung/hướng phát triển tổng hợp và các năng lực nên phát triển.
+1. **Vòng 1 — Bạn là ai?**
+2. **Vòng 2 — Phong cách giao tiếp của bạn là gì?**
+3. **Vòng 3 — Lĩnh vực của bạn cần người như thế nào?**
+4. **Điểm giao màu vàng** là vùng cả ba vòng chồng nhau: chân dung/hướng phát triển tổng hợp và các năng lực nên phát triển. Nhấn vào vùng giữa để mở.
 
-Khi vừa đến kết quả, làm dịu phần nền và lần lượt làm sáng vòng 1 → vòng 2 → vòng 3 → vùng vàng. Mỗi bước đủ thời gian để đọc nhãn. Sau lượt giới thiệu, người dùng có thể chọn lại bất kỳ vùng nào; không khóa họ vào thứ tự ban đầu. Nếu người dùng không muốn chờ hiệu ứng, họ vẫn có thể đi thẳng vào nội dung.
+Khi vừa đến kết quả, **tối cả màn hình** (dim nền), rồi **sáng từng vòng tròn lần lượt** 1 → 2 → 3 → vùng giữa để gợi ý nhấn. Mỗi bước đủ thời gian để đọc nhãn. Chạm vào vòng đang sáng (hoặc bất kỳ vòng nào) sẽ mở modal ngay và kết thúc lượt giới thiệu. Nếu người dùng không muốn chờ hiệu ứng, họ vẫn có thể chạm thẳng vào vòng để mở nội dung.
 
-### 5. Đọc kết quả và CTA
+### 5. Đọc kết quả và CTA (mỗi vòng một modal)
 
-- Khi chọn một vòng hoặc vùng vàng, cuộn đến thẻ nội dung tương ứng ngay dưới sơ đồ. Nội dung phân tích trong sheet khá dài, nên thẻ trên trang phù hợp hơn chuỗi modal; trên điện thoại cũng dễ đọc và quay lại sơ đồ hơn.
-- Các thẻ xuất hiện theo cùng thứ tự 1 → 2 → 3 → vàng, có nhãn khớp với sơ đồ.
-- Thẻ **Điểm giao màu vàng** có CTA **Kết nối nhận tư vấn tại đây**. CTA mở đúng modal đăng ký ở mục 2, kèm tóm tắt kết quả của người dùng.
+- **Không hiện tất cả nội dung lên một lần.** Nhấn vào từng vòng tròn mở **một modal** hiển thị đúng nội dung vùng đó (tiêu đề, hình ảnh đại diện, phân tích từ sheet).
+- Modal vùng vàng có CTA **Kết nối nhận tư vấn tại đây**. CTA mở đúng modal đăng ký ở mục 2, kèm tóm tắt kết quả của người dùng.
+- Đóng modal quay lại sơ đồ ba vòng tròn (vị trí cuộn giữ nguyên). Vòng đã xem được đánh dấu để người dùng biết còn vùng nào chưa khám phá.
 - Người dùng có thể xem lại vùng khác, làm lại bài test hoặc tiếp tục đăng ký. Sau khi đăng ký, vẫn có đường quay lại kết quả.
 
 ## Nội dung kết quả và giới hạn cần xử lý trong flow
@@ -68,5 +68,5 @@ Khi vừa đến kết quả, làm dịu phần nền và lần lượt làm sá
 - Từ trang chủ, người dùng vào bài test bằng anchor hoặc mở đăng ký tư vấn bằng modal.
 - Người chưa làm test đăng ký được; người đã làm test đăng ký với kết quả của mình.
 - Hoàn thành test và chọn lĩnh vực dẫn ngay đến kết quả cá nhân hóa.
-- Sơ đồ sáng lần lượt theo thứ tự 1 → 2 → 3 → vàng; mọi vùng đều có thể chọn lại và dẫn đến nội dung tương ứng.
-- CTA ở vùng vàng mở cùng đơn đăng ký; người dùng vẫn xem lại kết quả sau khi gửi đơn.
+- Sơ đồ spotlight sáng lần lượt theo thứ tự 1 → 2 → 3 → vàng trên nền tối; nhấn vòng nào mở modal nội dung vùng đó, không dàn sẵn tất cả lên trang.
+- Modal vùng vàng mở cùng đơn đăng ký; người dùng vẫn xem lại kết quả sau khi gửi đơn.

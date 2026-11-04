@@ -140,7 +140,11 @@ export default async function RegistrationsPage({ searchParams }: Props) {
                     <StatusBadge status={r.status} />
                   </div>
                   <span className="text-sm text-body">
-                    {r.phone} · <b>{r.mbti}</b> · {r.field}
+                    {r.phone} · {r.mbti && r.field ? (
+                      <><b>{r.mbti}</b> · {r.field}</>
+                    ) : (
+                      <span className="font-semibold text-muted">Chưa làm test</span>
+                    )}
                   </span>
                   <span className="text-xs text-muted">
                     {formatDateTime(r.createdAt)} · {r.city}
@@ -184,7 +188,11 @@ export default async function RegistrationsPage({ searchParams }: Props) {
                       </a>
                     </td>
                     <td className="px-4 py-3">
-                      <b>{r.mbti}</b> · {r.field}
+                      {r.mbti && r.field ? (
+                        <><b>{r.mbti}</b> · {r.field}</>
+                      ) : (
+                        <span className="text-muted">Chưa làm test</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">{r.city}</td>
                     {isAdmin && <td className="px-4 py-3">{r.managerName ?? <span className="text-muted">Chưa có</span>}</td>}

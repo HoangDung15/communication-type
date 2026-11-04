@@ -15,8 +15,8 @@ import { fieldKey, type ResultsFile } from "../src/lib/results-types";
 const DEFAULT_SHEET_ID = "1kMLWs40b1lM3WC64m1AEMlMU-246XqmCUPe4aMXMZt8";
 const OUTPUT = join(process.cwd(), "src", "data", "results.json");
 
-// Cột bị bỏ qua khi đồng bộ (bản nháp đang viết lại). Ví dụ: "Công nghệ thông tin (Updated)".
-const IGNORED_COLUMN = /\(updated\)/i;
+// Cột nháp và ngành Kế toán - Tài chính - Ngân hàng không dùng trong sản phẩm.
+const IGNORED_COLUMN = /\(updated\)|kế toán/i;
 const CONTENT_ROW_LABEL = /^kết quả/i;
 
 const errors: string[] = [];

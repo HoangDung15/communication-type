@@ -7,14 +7,13 @@ import { AlertCircle, ArrowLeft } from "./icons";
 import { btnPrimary, iconBtn } from "./ui";
 import { attributionStore, quizStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
 import { formatScores } from "@/lib/mbti";
-import { DEFAULT_REFERRAL, displayReferralCode, normalizeReferralCode } from "@/lib/ref";
-import { formSchema, GENDERS, INVALID_REFERRAL, suggestEmail, type FormField, type FormValues } from "@/lib/register-schema";
+import { formSchema, GENDERS, suggestEmail, type FormField, type FormValues } from "@/lib/register-schema";
 import { site } from "@/lib/site";
 
-type Values = Record<FormField, string>;
+type ReferralFreeField = Exclude<FormField, "referral">;
+type Values = Record<ReferralFreeField, string>;
 
 const EMPTY: Values = {
-  referral: "",
   name: "",
   birthYear: "",
   gender: "",
@@ -26,63 +25,84 @@ const EMPTY: Values = {
   contactTime: "",
 };
 
-const FIELD_ORDER: FormField[] = ["referral", "name", "birthYear", "gender", "job", "phone", "email", "facebook", "city", "contactTime"];
+const FIELD_ORDER: ReferralFreeField[] = ["name", "birthYear", "gender", "job", "phone", "email", "facebook", "city", "contactTime"];
 
-// validCodes = null: chưa lấy được danh sách mã, bỏ qua kiểm tra mã ở trình duyệt (API vẫn kiểm tra).
-function validate(values: Values, validCodes: string[] | null) {
-  const parsed = formSchema.safeParse(values as FormValues);
-  const errors: Partial<Values> = {};
+// Mã giới thiệu không còn nhập tay: lấy từ link giới thiệu (attribution), API tự dùng BNV nếu không có.
+function validate(values: Values, referral: string) {
+  const parsed = formSchema.safeParse({ ...values, referral } as FormValues);
+  const errors: Partial<Record<ReferralFreeField, string>> = {};
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const key = issue.path[0] as FormField;
-      if (!errors[key]) errors[key] = issue.message;
+      if (key === "referral") continue;
+      if (!errors[key as ReferralFreeField]) errors[key as ReferralFreeField] = issue.message;
     }
   }
-  const code = normalizeReferralCode(values.referral);
-  if (!errors.referral && code && validCodes && !validCodes.includes(code)) errors.referral = INVALID_REFERRAL;
-  return { data: parsed.success && !errors.referral ? parsed.data : null, errors };
+  return { data: parsed.success ? parsed.data : null, errors };
 }
 
 const inputBase =
   "w-full rounded-[14px] border-[1.5px] bg-white px-3.5 text-base text-ink placeholder:text-[#a8988a] transition-colors focus:outline-none focus:border-sun-deep";
 
-export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
+export function RegisterForm({
+  validCodes,
+  initialResult,
+  requireResult = true,
+  backLabel = "Quay lại kết quả",
+  onSuccess,
+}: {
+  validCodes: string[] | null;
+  /** Kết quả đi kèm đơn; null = đăng ký trực tiếp chưa làm test. */
+  initialResult?: StoredResult | null;
+  /** true = bắt buộc có kết quả (trang /dang-ky cũ), false = cho gửi trực tiếp. */
+  requireResult?: boolean;
+  /** Nhãn nút quay lại; null = ẩn nút (dùng trong modal). */
+  backLabel?: string | null;
+  onSuccess?: (info: { name: string; email: string; emailSent: boolean }) => void;
+}) {
   const router = useRouter();
-  const [result, setResult] = useState<StoredResult | null>(null);
+  const [result, setResult] = useState<StoredResult | null>(initialResult ?? null);
+  const [redirecting, setRedirecting] = useState(false);
   const [values, setValues] = useState<Values>(EMPTY);
   const [errors, setErrors] = useState<Partial<Values>>({});
   const [triedSubmit, setTriedSubmit] = useState(false);
-  const [touched, setTouched] = useState<Set<FormField>>(() => new Set());
+  const [touched, setTouched] = useState<Set<ReferralFreeField>>(() => new Set());
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [referralFromLink, setReferralFromLink] = useState(false);
   const honeypot = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const r = resultStore.get();
-    if (!r) router.replace("/quiz");
-    else if (!r.field) router.replace("/linh-vuc");
-    else setResult(r);
-    // Vào bằng link của quản lý (/36): đã có mã nên ẩn hẳn ô nhập.
-    // Vào link chung: điền sẵn mã mặc định BNV, khách vẫn sửa được nếu có người giới thiệu khác.
-    const ref = attributionStore.get()?.ref;
-    if (ref && (!validCodes || validCodes.includes(ref))) {
-      setValues((v) => (v.referral ? v : { ...v, referral: displayReferralCode(ref) }));
-      setReferralFromLink(true);
-    } else if (!validCodes || validCodes.includes(DEFAULT_REFERRAL)) {
-      setValues((v) => (v.referral ? v : { ...v, referral: displayReferralCode(DEFAULT_REFERRAL) }));
+    if (initialResult) {
+      setResult(initialResult);
+      return;
     }
-  }, [router, validCodes]);
+    const r = resultStore.get();
+    if (!r) {
+      if (requireResult) {
+        setRedirecting(true);
+        router.replace("/quiz");
+      }
+      return;
+    }
+    if (!r.field) {
+      if (requireResult) {
+        setRedirecting(true);
+        router.replace("/linh-vuc");
+      }
+      return;
+    }
+    setResult(r);
+  }, [router, initialResult, requireResult]);
 
   // Chỉ báo lỗi cho ô người dùng đã rời khỏi (hoặc mọi ô sau khi đã bấm gửi), tránh báo lỗi khi đang gõ dở.
-  function showErrors(next: Values, touchedNow: Set<FormField>, all = triedSubmit) {
-    const found = validate(next, validCodes).errors;
+  function showErrors(next: Values, touchedNow: Set<ReferralFreeField>, all = triedSubmit) {
+    const found = validate(next, attributionStore.get()?.ref ?? "").errors;
     const visible: Partial<Values> = {};
     for (const f of FIELD_ORDER) if (found[f] && (all || touchedNow.has(f))) visible[f] = found[f];
     setErrors(visible);
   }
 
-  function update(field: FormField, value: string) {
+  function update(field: ReferralFreeField, value: string) {
     const next = { ...values, [field]: value };
     setValues(next);
     if (triedSubmit || touched.has(field) || field === "gender") {
@@ -92,7 +112,7 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
     }
   }
 
-  function blur(field: FormField) {
+  function blur(field: ReferralFreeField) {
     if (!values[field]) return;
     const t = new Set(touched).add(field);
     setTouched(t);
@@ -101,11 +121,11 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!result || submitting) return;
+    if (submitting) return;
     setTriedSubmit(true);
     setServerError(null);
 
-    const { data, errors: found } = validate(values, validCodes);
+    const { data, errors: found } = validate(values, attributionStore.get()?.ref ?? "");
     setErrors(found);
     if (!data) {
       const first = FIELD_ORDER.find((f) => found[f]);
@@ -118,34 +138,27 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
       const attribution = attributionStore.get();
       // Câu trả lời 12 câu (khách làm bài trước khi có tính năng này thì lấy từ tiến trình đã lưu)
       const quizAnswers = quizStore.get()?.answers;
-      const answers = result.answers ?? (quizAnswers?.every(Boolean) ? quizAnswers.join("") : undefined);
+      const answers = result?.answers ?? (quizAnswers?.every(Boolean) ? quizAnswers.join("") : undefined);
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          mbti: result.type,
-          field: result.field,
-          scores: formatScores(result.scores),
+          ...(result ? { mbti: result.type, field: result.field, scores: formatScores(result.scores) } : {}),
           answers,
+          referral: attribution?.ref ?? "",
           utmSource: attribution?.utmSource,
           utmMedium: attribution?.utmMedium,
           utmCampaign: attribution?.utmCampaign,
           website: honeypot.current?.value || undefined,
         }),
       });
-      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; field?: string; emailSent?: boolean };
-      // Mã giới thiệu sai (ví dụ quản lý vừa bị tạm ngưng): báo ngay dưới ô mã
-      if (body.field === "referral" && body.error) {
-        setErrors((e) => ({ ...e, referral: body.error }));
-        setReferralFromLink(false);
-        setTimeout(() => document.getElementById("f-referral")?.focus(), 0);
-        setSubmitting(false);
-        return;
-      }
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; emailSent?: boolean };
       if (!res.ok || !body.ok) throw new Error(body.error || "Gửi đăng ký chưa thành công");
-      thanksStore.set({ name: data.name, email: data.email, emailSent: Boolean(body.emailSent) });
-      router.push("/cam-on");
+      const info = { name: data.name, email: data.email, emailSent: Boolean(body.emailSent) };
+      thanksStore.set(info);
+      if (onSuccess) onSuccess(info);
+      else router.push("/cam-on");
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "Gửi đăng ký chưa thành công");
       setSubmitting(false);
@@ -154,7 +167,7 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
 
   const emailSuggestion = errors.email ? suggestEmail(values.email) : null;
 
-  const fieldProps = (field: FormField, multiline = false) => ({
+  const fieldProps = (field: ReferralFreeField, multiline = false) => ({
     id: `f-${field}`,
     name: field,
     value: values[field],
@@ -173,19 +186,22 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
       </div>
 
       <main
-        className={`relative mx-auto flex w-full max-w-[640px] flex-1 flex-col px-5 pb-8 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-[28px] md:border md:border-line md:bg-white md:px-10 md:py-9 ${result ? "opacity-100" : "opacity-0"}`}
+        className={`relative mx-auto flex w-full max-w-[640px] flex-1 flex-col px-5 pb-8 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-[28px] md:border md:border-line md:bg-white md:px-10 md:py-9 ${result || !requireResult ? "opacity-100" : "opacity-0"}`}
       >
-        <button type="button" onClick={() => router.back()} className="flex items-center gap-3 self-start text-[15px] font-semibold">
-          <span className={iconBtn}>
-            <ArrowLeft />
-          </span>
-          Quay lại kết quả
-        </button>
+        {/* Modal tự vẽ nút đóng riêng nên không cần nút quay lại; trang /dang-ky giữ nút này. */}
+        {backLabel ? (
+          <button type="button" onClick={() => router.back()} className="flex items-center gap-3 self-start text-[15px] font-semibold">
+            <span className={iconBtn}>
+              <ArrowLeft />
+            </span>
+            {backLabel}
+          </button>
+        ) : null}
 
         <h1 className="mt-6 text-[26px] font-extrabold leading-[1.3] md:text-[30px]">Đăng ký tư vấn 1-1</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-body">Điền thông tin để đội ngũ {site.orgName} liên hệ với bạn.</p>
 
-        {result && (
+        {result ? (
           <div className="mt-[18px] flex items-center gap-3 rounded-2xl border border-line bg-white px-3.5 py-3 md:bg-cream">
             <span className="rounded-[10px] bg-sun px-2.5 py-2 text-base font-extrabold tracking-[1px]">{result.type}</span>
             <div className="flex flex-col gap-0.5">
@@ -193,22 +209,15 @@ export function RegisterForm({ validCodes }: { validCodes: string[] | null }) {
               <span className="text-[13px] text-muted">Kết quả này sẽ được gửi kèm đăng ký</span>
             </div>
           </div>
+        ) : (
+          !redirecting && (
+            <p className="mt-[18px] rounded-2xl border border-dashed border-line-strong bg-cream/60 px-3.5 py-3 text-sm leading-relaxed text-body">
+              Bạn chưa làm bài test — vẫn đăng ký được. Muốn phân tích riêng theo phong cách của mình, hãy làm bài test trước.
+            </p>
+          )
         )}
 
         <form noValidate onSubmit={onSubmit} className="mt-[22px] flex flex-col gap-[18px]">
-          {/* Link có mã: ẩn ô mã (mã vẫn được gửi kèm). Chỉ hiện lại nếu mã đó không còn hợp lệ. */}
-          {(!referralFromLink || errors.referral) && (
-            <Field
-              label="Mã người giới thiệu"
-              field="referral"
-              optional
-              error={errors.referral}
-              hint={`Mặc định là ${displayReferralCode(DEFAULT_REFERRAL)}. Nếu có người giới thiệu bạn, nhập mã số của họ (ví dụ 36).`}
-            >
-              <input {...fieldProps("referral")} type="text" autoComplete="off" autoCapitalize="characters" maxLength={12} placeholder="VD: 36" />
-            </Field>
-          )}
-
           <Field label="Họ và tên" field="name" error={errors.name}>
             <input {...fieldProps("name")} type="text" autoComplete="name" placeholder="Nguyễn Văn A" />
           </Field>
@@ -316,22 +325,19 @@ function Field({
   error,
   hint,
   after,
-  optional,
   children,
 }: {
   label: string;
-  field: FormField;
+  field: ReferralFreeField;
   error?: string;
   hint?: string;
   after?: React.ReactNode;
-  optional?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={`f-${field}`} className="text-sm font-semibold">
-        {label}{" "}
-        {optional ? <span className="font-normal text-muted">(không bắt buộc)</span> : <span className="text-brand-dark">*</span>}
+        {label} <span className="text-brand-dark">*</span>
       </label>
       {hint && <span className="-mt-0.5 text-[13px] leading-snug text-muted">{hint}</span>}
       {children}

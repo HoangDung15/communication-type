@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "sync-results": "tsx --env-file-if-exists=.env.local scripts/sync-results.ts",
+    "sync-zones": "node --import tsx --env-file-if-exists=.env.local scripts/sync-zones.ts",
+    "sync-zones:local": "node --import tsx scripts/sync-zones.ts --local mbti.xlsx",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
     "admin:create": "tsx --env-file-if-exists=.env.local scripts/create-admin.ts"
   },
