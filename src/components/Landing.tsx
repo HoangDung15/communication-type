@@ -187,7 +187,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
                 onClick={openConsult}
                 className="mt-3 text-center text-[15px] font-semibold text-brand-dark hover:underline lg:mt-0"
               >
-                Kết nối tư vấn →
+                Kết nối tư vấn miễn phí →
               </button>
             </div>
           </div>
