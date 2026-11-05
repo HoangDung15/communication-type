@@ -26,6 +26,18 @@ type LandingProps = {
 const TOTAL = QUESTIONS.length;
 const AUTO_ADVANCE_MS = 260;
 
+function randomizeAnswerSides(): Choice[] {
+  const first = QUESTIONS.map((): Choice => Math.random() < 0.5 ? "a" : "b");
+  for (const dimension of DIMENSIONS) {
+    const indices = QUESTIONS.flatMap((q, index) => q.dimension === dimension.id ? [index] : []);
+    if (indices.every((index) => first[index] === first[indices[0]])) {
+      const index = indices[Math.floor(Math.random() * indices.length)];
+      first[index] = first[index] === "a" ? "b" : "a";
+    }
+  }
+  return first;
+}
+
 export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: LandingProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [thanks, setThanks] = useState(false);
@@ -33,6 +45,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
 
   // Quiz state (giữ logic Quiz.tsx, thêm bước chọn lĩnh vực)
   const [answers, setAnswers] = useState<(Choice | null)[]>(() => Array(TOTAL).fill(null));
+  const [firstChoices, setFirstChoices] = useState<Choice[]>(() => Array(TOTAL).fill("a"));
   const [current, setCurrent] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [selectedField, setSelectedField] = useState<string | null>(null);
@@ -47,6 +60,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   const complete = entry?.complete;
 
   useEffect(() => {
+    setFirstChoices(randomizeAnswerSides());
     const saved = quizStore.get();
     if (saved && saved.answers.length === TOTAL) {
       setAnswers(saved.answers);
@@ -211,6 +225,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
             {!testDone ? (
               <QuizBody
                 answers={answers}
+                firstChoice={firstChoices[current]}
                 current={current}
                 loaded={loaded}
                 selected={selected}
@@ -378,9 +393,10 @@ function StepNav({ onBack, nextLabel, onNext }: { onBack?: () => void; nextLabel
 }
 
 function QuizBody({
-  answers, current, loaded, selected, percent, onChoose, onPrev, onNext,
+  answers, firstChoice, current, loaded, selected, percent, onChoose, onPrev, onNext,
 }: {
   answers: (Choice | null)[];
+  firstChoice: Choice;
   current: number;
   loaded: boolean;
   selected: Choice | null;
@@ -411,7 +427,7 @@ function QuizBody({
       </span>
       <h2 key={current} className="mt-3.5 text-2xl font-bold leading-[1.35] md:text-[28px]">{q.text}</h2>
       <div className="mt-6 flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-4">
-        {(["a", "b"] as const).map((c) => {
+        {([firstChoice, firstChoice === "a" ? "b" : "a"] as Choice[]).map((c, index) => {
           const active = selected === c;
           return (
             <button
@@ -423,7 +439,7 @@ function QuizBody({
                 active ? "border-brand bg-peach-soft" : "border-line bg-white hover:border-line-strong hover:bg-cream"
               }`}
             >
-              <span className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] font-bold uppercase md:size-9 ${active ? "bg-brand text-white" : "bg-[#fff4d6] text-sun-ink"}`}>{c}</span>
+              <span className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] font-bold uppercase md:size-9 ${active ? "bg-brand text-white" : "bg-[#fff4d6] text-sun-ink"}`}>{index === 0 ? "a" : "b"}</span>
               <span className={`pt-1 text-base leading-normal md:pt-0 md:text-[17px] ${active ? "font-medium" : ""}`}>{q[c]}</span>
             </button>
           );
