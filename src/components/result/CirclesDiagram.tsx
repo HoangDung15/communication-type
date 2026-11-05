@@ -114,6 +114,17 @@ export function CirclesDiagram({
         .venn-center:active { transform: scale(0.97); }
         .venn-pulse { transform-box: fill-box; transform-origin: center; animation: venn-ping 1.6s ease-out infinite; pointer-events: none; }
         @keyframes venn-ping { 0% { transform: scale(0.85); opacity: 0.9; } 100% { transform: scale(1.25); opacity: 0; } }
+        .venn-star { transform-box: fill-box; transform-origin: center; animation: venn-twinkle 1.5s ease-in-out infinite; }
+        @keyframes venn-twinkle {
+          0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; filter: none; }
+          50% { transform: scale(1.3) rotate(18deg); opacity: 0.85; filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95)); }
+        }
+        .venn-star-halo { transform-box: fill-box; transform-origin: center; animation: venn-halo 1.8s ease-out infinite; pointer-events: none; }
+        @keyframes venn-halo { 0% { transform: scale(0.6); opacity: 0.75; } 100% { transform: scale(1.8); opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) {
+          .venn-star, .venn-star-halo { animation: none; }
+          .venn-star-halo { opacity: 0; }
+        }
         .venn-badge { animation: venn-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); transform-box: fill-box; transform-origin: center; }
         @keyframes venn-pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
         .venn-label { pointer-events: none; }
@@ -288,19 +299,30 @@ export function CirclesDiagram({
             )}
           </g>
 
-          {/* Chữ ở vùng giao thật; badge nằm phía trên chữ, cách 12px+ */}
+          {/* Chữ ở vùng giao thật: dấu sao như ở khung vàng; badge nằm phía trên, cách 12px+ */}
           <g className="venn-label" pointerEvents="none">
+            {yellowLit && (
+              <circle
+                cx={CENTER.x}
+                cy={CENTER.y}
+                r="26"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3"
+                className="venn-star-halo"
+              />
+            )}
             <text
               x={CENTER.x}
-              y={CENTER.y + 8}
+              y={CENTER.y + 11}
               textAnchor="middle"
-              fontSize="13"
+              fontSize="30"
               fontWeight="800"
               fill={yellowLit ? "#5c3d00" : "#ffffff"}
               opacity={yellowLit ? 1 : 0.7}
-              className="venn-circle"
+              className={yellowLit ? "venn-star" : "venn-circle"}
             >
-              {yellowLit ? "BẠN MUỐN TRỞ THÀNH" : "…"}
+              {yellowLit ? "✦" : "…"}
             </text>
             {seen.has("yellow") && (
               <g className="venn-badge">
@@ -341,26 +363,8 @@ export function CirclesDiagram({
         </p>
       )}
       {introDone && (
-        <ol className="mt-3 grid w-full max-w-[560px] grid-cols-1 gap-2.5 sm:grid-cols-3">
-          {INTRO_ORDER.slice(0, 3).map((key, i) => (
-            <li key={key} className="h-full">
-              <button
-                type="button"
-                onClick={() => pick(key)}
-                aria-pressed={seen.has(key)}
-                className="flex h-full min-h-[88px] w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-line bg-white px-3 py-3 text-center text-sm font-bold text-body transition-colors hover:border-line-strong hover:bg-cream"
-              >
-                <span className="flex size-7 items-center justify-center rounded-full bg-track text-[13px] font-extrabold text-body">
-                  {i + 1}
-                </span>
-                <span className="leading-snug">
-                  {key === "z1" ? ZONE_LABELS.z1 : key === "z2" ? ZONE_LABELS.z2 : ZONE_LABELS.z3}
-                </span>
-                {seen.has(key) && <span className="text-[13px] font-semibold text-mint-dark">Đã xem ✓</span>}
-              </button>
-            </li>
-          ))}
-          <li className="sm:col-span-3">
+        <ol className="mt-3 grid w-full max-w-[560px] grid-cols-1 gap-2.5">
+          <li>
             <button
               type="button"
               onClick={() => pick("yellow")}
