@@ -102,6 +102,9 @@ function NoticeBody() {
       <h3 className="text-center text-base font-extrabold leading-snug sm:text-lg">
         ĐĂNG KÝ PHIÊN TƯ VẤN 1:1 – BETTER TALK, BETTER WORK
       </h3>
+      <p className="mt-2 text-center text-sm font-semibold leading-relaxed text-body">
+        Dự án phi lợi nhuận, phiên tư vấn không mất phí
+      </p>
       <p className="mt-3 text-[15px] leading-relaxed text-body">
         Cảm ơn bạn đã quan tâm đến <strong>BETTER TALK, BETTER WORK</strong>!
       </p>
@@ -116,9 +119,6 @@ function NoticeBody() {
       </p>
       <h4 className="mt-4 text-[15px] font-extrabold">TRƯỚC KHI ĐĂNG KÝ, BẠN HÃY LƯU Ý:</h4>
       <ol className="mt-2.5 flex list-decimal flex-col gap-2.5 pl-5 text-[15px] leading-relaxed text-body">
-        <li>
-          <strong>Dự án phi lợi nhuận, phiên tư vấn không mất phí</strong>
-        </li>
         <li>
           <strong>Sự nghiêm túc:</strong> Chỉ đăng ký khi bạn thực sự mong muốn hiểu bản thân và sẵn sàng dành thời
           gian để nhìn nhận, cải thiện phong cách giao tiếp của mình. Đây không phải hoạt động trải nghiệm cho vui hay
