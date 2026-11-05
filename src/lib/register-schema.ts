@@ -94,16 +94,13 @@ const text = (min: number, max: number, label: string) =>
     .min(min, `Vui lòng nhập ${label}`)
     .max(max, `${label[0].toUpperCase() + label.slice(1)} quá dài (tối đa ${max} ký tự)`);
 
-// Mã người giới thiệu, không bắt buộc (ví dụ 36 → "kv36"; bỏ trống → ""). Nếu có nhập thì mã phải tồn tại:
-// việc này được kiểm tra riêng với danh sách quản lý đang hoạt động (form và API).
+// Mã người giới thiệu, không bắt buộc. Form không còn ô nhập: chỉ lấy từ link (?ref=).
 const referralSchema = z
   .string()
   .superRefine((v, ctx) => {
-    if (v.trim() && !normalizeReferralCode(v)) ctx.addIssue({ code: "custom", message: "Mã giới thiệu chưa đúng, ví dụ 36" });
+    if (v.trim() && !normalizeReferralCode(v)) ctx.addIssue({ code: "custom", message: "Mã giới thiệu chưa đúng" });
   })
   .transform((v) => normalizeReferralCode(v) ?? "");
-
-export const INVALID_REFERRAL = "Mã giới thiệu không tồn tại, vui lòng hỏi lại người đã giới thiệu bạn";
 
 export const formSchema = z.object({
   referral: referralSchema,

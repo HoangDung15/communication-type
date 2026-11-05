@@ -26,8 +26,7 @@ export default async function ManagersPage() {
       <div>
         <h1 className="text-2xl font-extrabold">Người quản lý</h1>
         <p className="mt-0.5 text-sm text-muted">
-          Mỗi người có một mã giới thiệu (ví dụ 36) và link riêng (…/36). Khách nhập mã trong form hoặc vào qua link sẽ tự về đúng
-          người đó.
+          Mỗi người có một link riêng. Khách vào qua link sẽ tự về đúng người đó. Tên đăng nhập trang quản lý không đổi theo link.
         </p>
       </div>
 
@@ -49,7 +48,7 @@ export default async function ManagersPage() {
                   <div>
                     <p className="text-base font-bold">{m.name}</p>
                     <p className="text-xs text-muted">
-                      Mã giới thiệu: <b className="text-body">{code}</b>
+                      Link: <b className="text-body">/{code}</b>
                       {" · "}
                       Tài khoản: <b className="text-body">{m.username ?? "—"}</b>
                       {" · "}

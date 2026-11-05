@@ -8,7 +8,7 @@ export const ZONE_LABELS: Record<ZoneKey, string> = {
   z1: "Bạn là ai?",
   z2: "Phong cách giao tiếp của bạn là gì?",
   z3: "Lĩnh vực của bạn cần người như thế nào?",
-  yellow: "Bạn muốn trở thành ai?",
+  yellow: "Tiềm năng giao tiếp của bạn",
 };
 
 export type ZoneData = {

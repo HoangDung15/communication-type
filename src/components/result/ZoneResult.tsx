@@ -60,9 +60,6 @@ export function ZoneResult({
         </section>
         <DimensionBars type={type} />
         <CirclesDiagram seen={seen} onSelect={pickZone} />
-        <p className="max-w-[420px] text-center text-sm leading-relaxed text-body">
-          Nhấn vào từng vòng tròn để khám phá kết quả của bạn.
-        </p>
         {consultSlot}
       </main>
       {openZone && zone && (

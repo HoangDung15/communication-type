@@ -61,7 +61,7 @@ export function parseResult(raw: string): ParsedResult {
 
   const ensureSection = (): Section => {
     if (!current) {
-      current = { title: "Phân tích của bạn", blocks: [] };
+      current = { title: "Phân tích", blocks: [] };
       sections.push(current);
     }
     return current;
