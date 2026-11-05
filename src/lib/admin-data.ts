@@ -1,7 +1,8 @@
+import { randomInt } from "node:crypto";
 import type { PoolClient } from "pg";
 import { generatePassword, hashPassword, verifyPassword, type CurrentUser } from "./auth";
 import { getPool } from "./db";
-import { DEFAULT_REFERRAL, displayReferralCode, normalizeReferralCode } from "./ref";
+import { DEFAULT_REFERRAL } from "./ref";
 import { isStatus, type StatusId } from "./statuses";
 
 // Truy vấn cho trang /quan-ly. Mọi hàm nhận người dùng hiện tại và tự giới hạn dữ liệu:
@@ -260,32 +261,41 @@ async function inTransaction<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
 
 export type CreateManagerResult = { ok: true; username: string; password: string } | { ok: false; error: string };
 
-export async function createManager(input: { name: string; ref: string; username: string }): Promise<CreateManagerResult> {
+// Token link giới thiệu: 8 ký tự, bỏ 0/o/1/l/i cho khỏi nhầm khi đọc miệng.
+const REF_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+function generateReferralCode(): string {
+  return Array.from({ length: 8 }, () => REF_ALPHABET[randomInt(REF_ALPHABET.length)]).join("");
+}
+
+export async function createManager(input: { name: string; username: string }): Promise<CreateManagerResult> {
   const name = input.name.trim().slice(0, 100);
-  // Admin gõ "36" hay "kv36" đều lưu thành "kv36"
-  const ref = normalizeReferralCode(input.ref);
-  const username = normalizeUsername(input.username || input.ref);
+  const username = normalizeUsername(input.username);
   if (name.length < 2) return { ok: false, error: "Vui lòng nhập tên người quản lý" };
-  if (!ref) return { ok: false, error: "Mã giới thiệu chỉ gồm chữ thường không dấu, số, - hoặc _ (tối đa 32 ký tự)" };
   if (!username) return { ok: false, error: "Tên đăng nhập gồm 3–32 ký tự: chữ thường không dấu, số, . - _" };
 
   const password = generatePassword();
   const hash = await hashPassword(password);
-  try {
-    await inTransaction(async (c) => {
-      const m = await c.query<{ id: number }>("INSERT INTO managers (ref, name) VALUES ($1, $2) RETURNING id", [ref, name]);
-      await c.query(
-        "INSERT INTO users (username, display_name, password_hash, role, manager_id) VALUES ($1, $2, $3, 'manager', $4)",
-        [username, name, hash, m.rows[0].id],
-      );
-    });
-  } catch (err) {
-    const detail = String((err as { constraint?: string }).constraint ?? "");
-    if (detail.includes("managers_ref")) return { ok: false, error: `Mã giới thiệu "${displayReferralCode(ref)}" đã được dùng` };
-    if (detail.includes("users_username")) return { ok: false, error: `Tên đăng nhập "${username}" đã được dùng` };
-    throw err;
+  // Trùng token (rất hiếm) thì tạo lại. Trùng tên đăng nhập thì báo ngay.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const ref = generateReferralCode();
+    try {
+      await inTransaction(async (c) => {
+        const m = await c.query<{ id: number }>("INSERT INTO managers (ref, name) VALUES ($1, $2) RETURNING id", [ref, name]);
+        await c.query(
+          "INSERT INTO users (username, display_name, password_hash, role, manager_id) VALUES ($1, $2, $3, 'manager', $4)",
+          [username, name, hash, m.rows[0].id],
+        );
+      });
+      return { ok: true, username, password };
+    } catch (err) {
+      const detail = String((err as { constraint?: string }).constraint ?? "");
+      if (detail.includes("managers_ref")) continue;
+      if (detail.includes("users_username")) return { ok: false, error: `Tên đăng nhập "${username}" đã được dùng` };
+      throw err;
+    }
   }
-  return { ok: true, username, password };
+  return { ok: false, error: "Không tạo được link giới thiệu, vui lòng thử lại" };
 }
 
 export async function setManagerActive(managerId: number, active: boolean): Promise<void> {

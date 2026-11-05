@@ -16,26 +16,21 @@ export function CreateManagerForm({ origin }: { origin: string }) {
 
   return (
     <div className="mt-3 flex flex-col gap-3">
-      <form ref={formRef} action={action} className="grid gap-3 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-end">
+      <form ref={formRef} action={action} className="grid gap-3 md:grid-cols-[1.4fr_1fr_auto] md:items-end">
         <label className="flex flex-col gap-1 text-xs font-semibold text-muted">
           Tên hiển thị
           <input name="name" required placeholder="VD: KV36" className={adminInput} />
         </label>
         <label className="flex flex-col gap-1 text-xs font-semibold text-muted">
-          Mã giới thiệu
-          <input name="ref" required placeholder="VD: 36" inputMode="numeric" autoCapitalize="none" spellCheck={false} className={adminInput} />
-        </label>
-        <label className="flex flex-col gap-1 text-xs font-semibold text-muted">
-          Tên đăng nhập (bỏ trống = mã giới thiệu)
-          <input name="username" placeholder="VD: kv36" autoCapitalize="none" spellCheck={false} className={adminInput} />
+          Tên đăng nhập
+          <input name="username" required placeholder="VD: kv36" autoCapitalize="none" spellCheck={false} className={adminInput} />
         </label>
         <button type="submit" disabled={pending} className={adminBtnPrimary}>
           {pending ? "Đang tạo..." : "Thêm"}
         </button>
       </form>
       <p className="text-xs text-muted">
-        Mã giới thiệu là số (36…42): khách nhập số này ở ô &quot;Mã người giới thiệu&quot;, link riêng của người đó là …/36. Mật khẩu được
-        tạo tự động.
+        Link giới thiệu (8 ký tự) và mật khẩu được tạo tự động. Tên đăng nhập chỉ dùng để vào trang quản lý, không hiện trên link.
       </p>
 
       {state && !state.ok && (

@@ -83,7 +83,7 @@ export async function transferAction(_prev: { error?: string } | null, fd: FormD
 
 export async function createManagerAction(_prev: CreateManagerResult | null, fd: FormData): Promise<CreateManagerResult> {
   await requireAdmin();
-  const result = await createManager({ name: str(fd, "name"), ref: str(fd, "ref"), username: str(fd, "username") });
+  const result = await createManager({ name: str(fd, "name"), username: str(fd, "username") });
   if (result.ok) revalidatePath("/quan-ly/nguoi-quan-ly");
   return result;
 }
