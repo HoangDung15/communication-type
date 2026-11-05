@@ -208,7 +208,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
         )}
 
         {step === 2 && (
-        <section aria-label="Bài test" className="pt-8 lg:pt-4">
+        <section aria-label="Bài test" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
           <div className="mx-auto w-full max-w-[720px] rounded-[28px] border border-line bg-white px-5 py-7 md:px-10 md:py-9">
             <button type="button" onClick={() => goToStep(1)} className="mb-5 text-[15px] font-semibold text-brand-dark hover:underline">
               ← Quay lại
