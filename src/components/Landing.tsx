@@ -38,6 +38,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [openZone, setOpenZone] = useState<ZoneKey | null>(null);
   const [seenZones, setSeenZones] = useState<Set<ZoneKey>>(new Set());
+  const [step, setStep] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const storedType = result?.type;
@@ -71,6 +72,11 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     setModalOpen(true);
   }, []);
 
+  const goToStep = useCallback((n: number) => {
+    setStep(Math.min(Math.max(n, 0), 3));
+    window.scrollTo({ top: 0 });
+  }, []);
+
   const pickZone = useCallback((key: ZoneKey) => {
     setSeenZones((prev) => new Set(prev).add(key));
     setOpenZone(key);
@@ -83,9 +89,6 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     resultStore.set(stored);
     setResult(stored);
     setSelectedField(stored.field ?? null);
-    requestAnimationFrame(() => {
-      document.getElementById("chon-linh-vuc")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   }, []);
 
   const confirmField = useCallback(() => {
@@ -95,10 +98,15 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     setResult(next);
     setOpenZone(null);
     setSeenZones(new Set());
-    requestAnimationFrame(() => {
-      document.getElementById("ket-qua")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }, [result, selectedField]);
+    goToStep(3);
+  }, [result, selectedField, goToStep]);
+
+  const restartQuiz = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    setCurrent(0);
+    setAnswers(Array(TOTAL).fill(null));
+    goToStep(2);
+  }, [goToStep]);
 
   const choose = useCallback(
     (choice: Choice) => {
@@ -122,15 +130,12 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden">
       <Blobs />
-      <LandingHeader onConsult={openConsult} />
+      <LandingHeader onConsult={openConsult} onTest={() => goToStep(1)} />
 
       <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 lg:px-10">
-        {/* 1. Mở đầu */}
-        <section aria-labelledby="intro-title" className="flex flex-col pt-12 lg:flex-row lg:items-center lg:gap-16 lg:pt-8">
+        {step === 0 && (
+        <section aria-labelledby="intro-title" className="flex flex-col pt-8 lg:flex-row lg:items-center lg:gap-16 lg:pt-4">
           <div className="flex flex-1 flex-col">
-            <span className="self-start rounded-full border border-line bg-white px-3 py-1.5 text-[13px] font-semibold text-mint-dark lg:px-3.5 lg:py-2 lg:text-sm">
-              Nâng tầm phong cách giao tiếp của bạn
-            </span>
             <h1 id="intro-title" className="mt-[18px] text-[34px] font-extrabold leading-[1.18] tracking-[-0.5px] sm:text-[44px] lg:mt-6 lg:text-[56px] lg:leading-[1.12] lg:tracking-[-1px]">
               BETTER <span className="text-brand">TALK</span>, BETTER <span className="text-brand">WORK</span>            
             </h1>
@@ -140,21 +145,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
                 
                 <strong>BETTER TALK, BETTER WORK</strong> giúp bạn khám phá phong cách giao tiếp cá nhân thông qua MBTI, đối chiếu với đặc thù giao tiếp của ngành nghề và nhận diện những năng lực cần phát triển. <br /><br />
                 
-                Bởi muốn tạo nên kết quả khác biệt, bạn không thể mãi giao tiếp theo cách thông thường. Hãy chủ động, quyết liệt và năng động để tạo nên phong cách giao tiếp mang dấu ấn riêng và vượt trội trong công việc. <br /><br />
-                
-                <strong>KHÁM PHÁ PHONG CÁCH GIAO TIẾP CỦA BẠN</strong>
-                <span className="block pl-4 mt-2">
-                  • <strong>Tôi là ai?</strong> – Xu hướng tính cách và cách tương tác. <br />
-                  • <strong>Tôi giao tiếp thế nào?</strong> – Phong cách, thế mạnh và rào cản giao tiếp. <br />
-                  • <strong>Nghề nghiệp cần gì?</strong> – Những tiêu chuẩn giao tiếp đặc thù. <br />
-                  • <strong>Tôi cần phát triển gì?</strong> – Những năng lực cần cải thiện để làm việc hiệu quả hơn.
-                </span> <br />
-                
-                <strong>TÔI QUYẾT LIỆT TRỞ THÀNH...</strong> <br />
-                Một người giao tiếp độc đáo, chủ động và vượt trội. <br />
-                Không ngừng phát huy thế mạnh, quyết liệt thay đổi những giới hạn và năng động thích nghi với yêu cầu nghề nghiệp. <br /><br />
-
-                <strong>BETTER TALK. BETTER WORK. BETTER YOU.</strong>
+                Bởi muốn tạo nên kết quả khác biệt, bạn không thể mãi giao tiếp theo cách thông thường. Hãy chủ động, quyết liệt và năng động để tạo nên phong cách giao tiếp mang dấu ấn riêng và vượt trội trong công việc.
               </p>
 
             <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 lg:mt-7 lg:justify-start lg:gap-x-6">
@@ -172,7 +163,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
               </li>
             </ul>
             <div className="mt-8 flex flex-col lg:mt-9 lg:flex-row lg:items-center lg:gap-5">
-              <button type="button" onClick={scrollToTest} className={`${btnPrimary} w-full lg:h-[60px] lg:w-auto lg:px-8 lg:text-lg`}>
+              <button type="button" onClick={() => goToStep(1)} className={`${btnPrimary} w-full lg:h-[60px] lg:w-auto lg:px-8 lg:text-lg`}>
                 Bài test
                 <ArrowRight />
               </button>
@@ -186,10 +177,43 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
             </div>
           </div>
         </section>
+        )}
 
-        {/* 2. Bài test (giữ nguyên Quiz, thêm bước lĩnh vực) */}
-        <section id="bai-test" aria-label="Bài test" className="scroll-mt-20 pt-16">
+        {step === 1 && (
+        <section aria-labelledby="explore-title" className="flex flex-col pt-8 lg:pt-4">
+          <div className="flex max-w-[600px] flex-col">
+            <h1 id="explore-title" className="text-[26px] font-extrabold leading-[1.3] md:text-[30px]">
+              KHÁM PHÁ PHONG CÁCH GIAO TIẾP CỦA BẠN
+            </h1>
+            <ul className="mt-4 flex flex-col gap-2.5 text-base leading-relaxed text-body lg:text-[17px]">
+              <li>• <strong>Tôi là ai?</strong> – Xu hướng tính cách và cách tương tác.</li>
+              <li>• <strong>Tôi giao tiếp thế nào?</strong> – Phong cách, thế mạnh và rào cản giao tiếp.</li>
+              <li>• <strong>Nghề nghiệp cần gì?</strong> – Những tiêu chuẩn giao tiếp đặc thù.</li>
+              <li>• <strong>Tôi cần phát triển gì?</strong> – Những năng lực cần cải thiện để làm việc hiệu quả hơn.</li>
+            </ul>
+            <p className="mt-6 text-base leading-relaxed text-body lg:text-[17px]">
+              <strong>TÔI QUYẾT LIỆT TRỞ THÀNH...</strong> <br />
+              Một người giao tiếp độc đáo, chủ động và vượt trội. <br />
+              Không ngừng phát huy thế mạnh, quyết liệt thay đổi những giới hạn và năng động thích nghi với yêu cầu nghề nghiệp.
+            </p>
+            <p className="mt-4 text-base font-bold leading-relaxed lg:text-[17px]">
+              BETTER TALK. BETTER WORK. BETTER YOU.
+            </p>
+            <StepNav
+              onBack={() => goToStep(0)}
+              nextLabel="Bắt đầu bài test"
+              onNext={() => goToStep(2)}
+            />
+          </div>
+        </section>
+        )}
+
+        {step === 2 && (
+        <section aria-label="Bài test" className="pt-8 lg:pt-4">
           <div className="mx-auto w-full max-w-[720px] rounded-[28px] border border-line bg-white px-5 py-7 md:px-10 md:py-9">
+            <button type="button" onClick={() => goToStep(1)} className="mb-5 text-[15px] font-semibold text-brand-dark hover:underline">
+              ← Quay lại
+            </button>
             {!testDone ? (
               <QuizBody
                 answers={answers}
@@ -225,9 +249,10 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
           </div>
         </section>
 
-        {/* 3. Kết quả ba vòng tròn: nhấn vòng nào mở modal vùng đó */}
-        {storedType && result?.field && (
-          <section id="ket-qua" aria-label="Kết quả của bạn" className="scroll-mt-20 pt-16">
+        )}
+
+        {step === 3 && storedType && result?.field && (
+          <section aria-label="Kết quả của bạn" className="pt-8 lg:pt-4">
             <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4">
               <section className="relative w-full overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
                 <p className="relative text-sm font-semibold text-[#5c3d00]">Phong cách giao tiếp của bạn</p>
@@ -253,8 +278,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
           </section>
         )}
 
-        {/* 4. Tư vấn: đăng ký → xác nhận → kết nối */}
-        <section aria-label="Kết nối tư vấn" className="mx-auto w-full max-w-6xl pt-16">
+
+        <div aria-label="Kết nối tư vấn" className="mx-auto w-full max-w-[640px] pt-8">
           <div className="relative flex flex-col gap-3 overflow-hidden rounded-3xl bg-ink px-5 py-6 text-white lg:px-8 lg:py-8">
             <h2 className="relative text-[22px] font-extrabold leading-[1.3] lg:text-2xl">Muốn áp dụng thế mạnh này vào công việc?</h2>
             <ol className="relative mt-2 flex flex-col gap-3 text-[15px] leading-relaxed text-line">
@@ -267,7 +292,14 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
               <ArrowRight />
             </button>
           </div>
-        </section>
+        </div>
+        {step === 3 && (
+          <div className="mx-auto w-full max-w-[640px] pt-6">
+            <button type="button" onClick={restartQuiz} className="text-[15px] font-semibold text-brand-dark hover:underline">
+              ← Làm lại bài test
+            </button>
+          </div>
+        )}
       </main>
 
       <ConsultModal
@@ -296,9 +328,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
           onBackToResult={() => {
             setThanks(false);
             setModalOpen(false);
-            requestAnimationFrame(() => {
-              document.getElementById("ket-qua")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            });
+            goToStep(3);
           }}
         />
       )}
@@ -306,18 +336,14 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   );
 }
 
-function scrollToTest() {
-  document.getElementById("bai-test")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function LandingHeader({ onConsult }: { onConsult: () => void }) {
+function LandingHeader({ onConsult, onTest }: { onConsult: () => void; onTest: () => void }) {
   return (
     <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-5 pt-5 lg:px-10 lg:pt-7">
       <span className="text-[15px] font-bold lg:text-lg">BETTER TALK, BETTER WORK</span>
       <nav className="flex items-center gap-2" aria-label="Điều hướng chính">
         <button
           type="button"
-          onClick={scrollToTest}
+          onClick={onTest}
           className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-semibold text-brand-dark hover:bg-peach-soft"
         >
           Bài test
@@ -331,6 +357,24 @@ function LandingHeader({ onConsult }: { onConsult: () => void }) {
         </button>
       </nav>
     </header>
+  );
+}
+
+function StepNav({ onBack, nextLabel, onNext }: { onBack?: () => void; nextLabel: string; onNext: () => void }) {
+  return (
+    <div className="mt-8 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {onBack ? (
+        <button type="button" onClick={onBack} className={`${btnSecondary} w-full md:w-auto md:px-6`}>
+          Quay lại
+        </button>
+      ) : (
+        <span className="hidden md:block" />
+      )}
+      <button type="button" onClick={onNext} className={`${btnPrimary} w-full md:w-auto md:px-7`}>
+        {nextLabel}
+        <ArrowRight />
+      </button>
+    </div>
   );
 }
 
