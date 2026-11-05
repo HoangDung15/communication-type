@@ -138,8 +138,10 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
             <h1 id="intro-title" className="mt-[18px] text-[34px] font-extrabold leading-[1.18] tracking-[-0.5px] sm:text-[44px] lg:mt-6 lg:text-[56px] lg:leading-[1.12] lg:tracking-[-1px]">
               BETTER <span className="text-brand">TALK</span>, BETTER <span className="text-brand">WORK</span>            
             </h1>
-              <p className="mt-3.5 max-w-[540px] text-base leading-relaxed text-body lg:mt-5 lg:text-[19px]">
-                <strong>VỀ DỰ ÁN</strong> <br />
+              <h2 className="mt-6 max-w-[540px] text-[26px] font-extrabold leading-[1.2] tracking-[-0.5px] sm:text-[32px] lg:mt-8 lg:text-[40px]">
+                VỀ DỰ ÁN
+              </h2>
+              <p className="mt-3 max-w-[540px] text-base leading-relaxed text-body lg:mt-4 lg:text-[19px]">
                 Trong công việc, giao tiếp không chỉ là cách bạn nói chuyện, mà còn quyết định cách bạn kết nối, phối hợp và tạo ra giá trị. <br /><br />
                 
                 <strong>BETTER TALK, BETTER WORK</strong> giúp bạn khám phá phong cách giao tiếp cá nhân thông qua MBTI, đối chiếu với đặc thù giao tiếp của ngành nghề và nhận diện những năng lực cần phát triển. <br /><br />
