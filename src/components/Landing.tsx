@@ -134,7 +134,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
       <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 lg:px-10">
         {step === 0 && (
         <section aria-labelledby="intro-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
-          <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col justify-center">
             <h1 id="intro-title" className="mt-[18px] text-[34px] font-extrabold leading-[1.18] tracking-[-0.5px] sm:text-[44px] lg:mt-6 lg:text-[56px] lg:leading-[1.12] lg:tracking-[-1px]">
               BETTER <span className="text-brand">TALK</span>, BETTER <span className="text-brand">WORK</span>            
             </h1>
@@ -180,7 +180,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
 
         {step === 1 && (
         <section aria-labelledby="explore-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
-          <div className="flex max-w-[600px] flex-col">
+          <div className="my-auto flex w-full max-w-[600px] flex-col">
             <h1 id="explore-title" className="text-[32px] font-extrabold leading-[1.15] tracking-[-0.5px] sm:text-[40px] lg:text-[52px] lg:leading-[1.1]">
               KHÁM PHÁ PHONG CÁCH GIAO TIẾP CỦA BẠN
             </h1>
