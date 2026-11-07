@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import {
   changeOwnPassword,
   createManager,
+  deleteRegistration,
   findUserForLogin,
   normalizeUsername,
   resetPassword,
@@ -66,6 +67,19 @@ export async function updateNoteAction(_prev: { saved?: boolean } | null, fd: Fo
   const saved = await updateRegistration(user, id, { note: str(fd, "note").trim() });
   revalidatePath("/quan-ly", "layout");
   return { saved };
+}
+
+export async function deleteRegistrationAction(
+  _prev: { error?: string } | null,
+  fd: FormData,
+): Promise<{ error?: string }> {
+  const user = await requireAdmin();
+  const id = Number(str(fd, "id"));
+  if (!Number.isSafeInteger(id) || id <= 0) return { error: "Mã đơn không hợp lệ" };
+  const deleted = await deleteRegistration(user, id);
+  if (!deleted) return { error: "Không tìm thấy đơn để xóa" };
+  revalidatePath("/quan-ly", "layout");
+  redirect("/quan-ly");
 }
 
 // Chuyển đơn của BNV cho một quản lý KV (quy tắc kiểm tra trong transferRegistration).

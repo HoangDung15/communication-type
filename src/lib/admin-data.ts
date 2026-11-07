@@ -178,6 +178,12 @@ export async function updateRegistration(
   return (res.rowCount ?? 0) > 0;
 }
 
+export async function deleteRegistration(user: CurrentUser, id: number): Promise<boolean> {
+  if (user.role !== "admin") return false;
+  const res = await getPool().query("DELETE FROM registrations WHERE id = $1", [id]);
+  return (res.rowCount ?? 0) > 0;
+}
+
 // ---- Người quản lý & tài khoản (chỉ admin) ----
 
 export type ManagerRow = {
