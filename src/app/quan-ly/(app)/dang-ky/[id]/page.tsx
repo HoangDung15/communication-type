@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/admin/CopyButton";
+import { DeleteRegistrationForm } from "@/components/admin/DeleteRegistrationForm";
 import { NoteForm } from "@/components/admin/NoteForm";
 import { TransferForm } from "@/components/admin/TransferForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -141,6 +142,13 @@ export default async function RegistrationDetailPage({ params }: Props) {
         <NoteForm id={r.id} note={r.note ?? ""} />
       </section>
 
+      {user.role === "admin" && (
+        <section className={`${adminCard} flex flex-col gap-3 border-red-200 p-5`}>
+          <h2 className="text-base font-bold text-red-700">Xóa đơn đăng ký</h2>
+          <p className="text-sm text-body">Đơn sẽ bị xóa vĩnh viễn khỏi danh sách và file xuất.</p>
+          <DeleteRegistrationForm id={r.id} name={r.name} />
+        </section>
+      )}
     </div>
   );
 }
