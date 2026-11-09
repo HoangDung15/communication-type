@@ -13,6 +13,10 @@ const beVietnam = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+  ),
   title: `${site.title} | ${site.name}`,
   description: site.description,
   openGraph: {
@@ -20,6 +24,13 @@ export const metadata: Metadata = {
     description: site.description,
     locale: "vi_VN",
     type: "website",
+    images: [{ url: "/share-preview.png", width: 2172, height: 724, alt: site.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: site.title,
+    description: site.description,
+    images: ["/share-preview.png"],
   },
 };
 
