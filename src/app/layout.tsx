@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     description: site.description,
     locale: "vi_VN",
     type: "website",
-    images: [{ url: "/share-preview.png", width: 2172, height: 724, alt: site.name }],
+    images: [{ url: "/share-preview-cropped.png", width: 1383, height: 724, alt: site.name }],
   },
   twitter: {
     card: "summary_large_image",
     title: site.title,
     description: site.description,
-    images: ["/share-preview.png"],
+    images: ["/share-preview-cropped.png"],
   },
 };
 
