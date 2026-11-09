@@ -7,6 +7,8 @@ import { btnPrimary, btnSecondary, iconBtn } from "./ui";
 import { ConsultModal } from "./ConsultModal";
 import { FieldIcon } from "./FieldIcon";
 import { CirclesDiagram } from "./result/CirclesDiagram";
+import { ConsultationCallout, ConsultationContent } from "./result/ConsultationCallout";
+import { ResultPeek } from "./result/ResultPeek";
 import { ZoneModal } from "./result/ZoneModal";
 import { DIMENSIONS, QUESTIONS, type Choice } from "@/lib/questions";
 import { computeResult } from "@/lib/mbti";
@@ -25,6 +27,7 @@ type LandingProps = {
 
 const TOTAL = QUESTIONS.length;
 const AUTO_ADVANCE_MS = 260;
+const STEP = { INTRO: 0, EXPLORE: 1, CONSULTATION: 2, QUIZ: 3, RESULT: 4 } as const;
 
 function randomizeAnswerSides(): Choice[] {
   const first = QUESTIONS.map((): Choice => Math.random() < 0.5 ? "a" : "b");
@@ -87,7 +90,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   }, []);
 
   const goToStep = useCallback((n: number) => {
-    setStep(Math.min(Math.max(n, 0), 3));
+    setStep(Math.min(Math.max(n, STEP.INTRO), STEP.RESULT));
     window.scrollTo({ top: 0 });
   }, []);
 
@@ -112,14 +115,14 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     setResult(next);
     setOpenZone(null);
     setSeenZones(new Set());
-    goToStep(3);
+    goToStep(STEP.RESULT);
   }, [result, selectedField, goToStep]);
 
   const restartQuiz = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     setCurrent(0);
     setAnswers(Array(TOTAL).fill(null));
-    goToStep(2);
+    goToStep(STEP.QUIZ);
   }, [goToStep]);
 
   const choose = useCallback(
@@ -146,7 +149,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
       <Blobs />
 
       <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 lg:px-10">
-        {step === 0 && (
+        {step === STEP.INTRO && (
         <section aria-labelledby="intro-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
           <div className="flex flex-1 flex-col justify-center">
             <h1 id="intro-title" className="mt-[18px] text-[34px] font-extrabold leading-[1.18] tracking-[-0.5px] sm:text-[44px] lg:mt-6 lg:text-[56px] lg:leading-[1.12] lg:tracking-[-1px]">
@@ -178,7 +181,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
               </li>
             </ul>
             <div className="mt-8 flex flex-col lg:mt-9 lg:flex-row lg:items-center lg:gap-5">
-              <button type="button" onClick={() => goToStep(1)} className={`${btnPrimary} w-full lg:h-[60px] lg:w-auto lg:px-8 lg:text-lg`}>
+              <button type="button" onClick={() => goToStep(STEP.EXPLORE)} className={`${btnPrimary} w-full lg:h-[60px] lg:w-auto lg:px-8 lg:text-lg`}>
                 Bài test
                 <ArrowRight />
               </button>
@@ -194,7 +197,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
         </section>
         )}
 
-        {step === 1 && (
+        {step === STEP.EXPLORE && (
         <section aria-labelledby="explore-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
           <div className="my-auto flex w-full max-w-[600px] flex-col">
             <h1 id="explore-title" className="text-[32px] font-extrabold leading-[1.15] tracking-[-0.5px] sm:text-[40px] lg:text-[52px] lg:leading-[1.1]">
@@ -208,18 +211,31 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
               Dựa trên nền tảng MBTI kết hợp với đặc thù ngành nghề, bài test giúp bạn khám phá cách tư duy, tương tác, truyền đạt thông tin; nhận diện thế mạnh, những rào cản trong giao tiếp và năng lực cần phát triển để thích nghi tốt hơn với môi trường làm việc.
             </p>
             <StepNav
-              onBack={() => goToStep(0)}
-              nextLabel="Bắt đầu bài test"
-              onNext={() => goToStep(2)}
+              onBack={() => goToStep(STEP.INTRO)}
+              nextLabel="Tiếp theo"
+              onNext={() => goToStep(STEP.CONSULTATION)}
             />
           </div>
         </section>
         )}
 
-        {step === 2 && (
+        {step === STEP.CONSULTATION && (
+        <section aria-labelledby="consultation-intro-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
+          <div className="my-auto w-full max-w-[600px]">
+            <ConsultationContent plain />
+            <StepNav
+              onBack={() => goToStep(STEP.EXPLORE)}
+              nextLabel="Bắt đầu bài test"
+              onNext={() => goToStep(STEP.QUIZ)}
+            />
+          </div>
+        </section>
+        )}
+
+        {step === STEP.QUIZ && (
         <section aria-label="Bài test" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
           <div className="mx-auto w-full max-w-[720px] rounded-[28px] border border-line bg-white px-5 py-7 md:px-10 md:py-9">
-            <button type="button" onClick={() => goToStep(1)} className="mb-5 text-[15px] font-semibold text-brand-dark hover:underline">
+            <button type="button" onClick={() => goToStep(STEP.CONSULTATION)} className="mb-5 text-[15px] font-semibold text-brand-dark hover:underline">
               ← Quay lại
             </button>
             {!testDone ? (
@@ -260,11 +276,12 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
 
         )}
 
-        {step === 3 && storedType && result?.field && (
+        {step === STEP.RESULT && storedType && result?.field && (
           <>
           <section aria-label="Kết quả của bạn" className="pt-8 lg:pt-4">
             <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4">
-              <section className="relative w-full overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
+              <ConsultationCallout onConsult={openConsult} />
+              <section id="result-summary" className="relative w-full scroll-mt-4 overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
                 <p className="relative text-sm font-semibold text-[#5c3d00]">Phong cách giao tiếp của bạn</p>
                 <h2 className="relative mt-1.5 text-[64px] font-extrabold leading-none tracking-[2px]">{storedType}</h2>
                 <span className="relative mt-4 inline-block rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-white">
@@ -283,30 +300,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
               )}
             </div>
           </section>
+          <ResultPeek type={storedType} targetId="result-summary" />
 
-        <div aria-label="Kết nối tư vấn" className="mx-auto w-full max-w-[640px] pt-8">
-          <h2 className="text-[22px] font-extrabold leading-[1.25] lg:text-[26px]">
-            TƯ VẤN CHUYÊN SÂU - PHÁT HUY TIỀM NĂNG GIAO TIẾP VƯỢT TRỘI
-          </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-body lg:text-base">
-            Bạn đã biết thế mạnh giao tiếp, nhận diện những điểm cần cải thiện và những năng lực ngành nghề đòi hỏi.
-            Nhưng làm thế nào để biến những hiểu biết đó thành thay đổi thực tế trong công việc?
-          </p>
-          <div className="relative mt-5 flex flex-col gap-3 overflow-hidden rounded-3xl bg-ink px-5 py-6 text-white lg:px-8 lg:py-8">
-            <p className="relative text-[17px] font-bold leading-[1.4] lg:text-[19px]">
-              Đăng ký phiên tư vấn 1:1 miễn phí cùng Advisor để:
-            </p>
-            <ol className="relative mt-1 flex flex-col gap-3 text-[15px] leading-relaxed text-line">
-              <li className="flex gap-2.5"><span className="font-bold text-sun">1.</span> Hiểu sâu hơn những điểm mạnh và rào cản trong phong cách giao tiếp.</li>
-              <li className="flex gap-2.5"><span className="font-bold text-sun">2.</span> Đối chiếu kết quả với những tình huống bạn đang gặp tại công sở.</li>
-              <li className="flex gap-2.5"><span className="font-bold text-sun">3.</span> Xác định hướng phát triển và hành động cụ thể để giao tiếp hiệu quả hơn.</li>
-            </ol>
-            <button type="button" onClick={openConsult} className="relative mt-3 inline-flex h-14 items-center justify-center gap-2.5 self-start rounded-2xl bg-sun px-8 text-[17px] font-bold text-ink transition-colors hover:bg-sun-deep">
-              KẾT NỐI TƯ VẤN 1:1
-              <ArrowRight />
-            </button>
-          </div>
-        </div>
           <div className="mx-auto w-full max-w-[640px] pt-6">
             <button type="button" onClick={restartQuiz} className="text-[15px] font-semibold text-brand-dark hover:underline">
               ← Làm lại bài test
@@ -342,7 +337,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
           onBackToResult={() => {
             setThanks(false);
             setModalOpen(false);
-            goToStep(3);
+            goToStep(STEP.RESULT);
           }}
         />
       )}

@@ -23,9 +23,10 @@ const EMPTY: Values = {
   facebook: "",
   city: "",
   contactTime: "",
+  consultationGoal: "",
 };
 
-const FIELD_ORDER: ReferralFreeField[] = ["name", "birthYear", "gender", "job", "phone", "email", "facebook", "city", "contactTime"];
+const FIELD_ORDER: ReferralFreeField[] = ["name", "birthYear", "gender", "job", "phone", "email", "facebook", "city", "contactTime", "consultationGoal"];
 
 // Mã giới thiệu không còn nhập tay: lấy từ link giới thiệu (attribution), API tự dùng BNV nếu không có.
 function validate(values: Values, referral: string) {
@@ -291,6 +292,10 @@ export function RegisterForm({
 
           <Field label="Khung thời gian BTC có thể liên hệ" field="contactTime" error={errors.contactTime}>
             <textarea {...fieldProps("contactTime", true)} rows={3} placeholder="VD: Tối thứ 2–6 sau 19h, hoặc sáng cuối tuần" />
+          </Field>
+
+          <Field label="Bạn mong muốn được giúp đỡ điều gì thông qua buổi tư vấn với Advisor?" field="consultationGoal" error={errors.consultationGoal}>
+            <textarea {...fieldProps("consultationGoal", true)} rows={4} maxLength={2000} placeholder="Chia sẻ tình huống giao tiếp hoặc điều bạn muốn cải thiện trong công việc" />
           </Field>
 
           {/* Ô bẫy chống bot, người dùng không nhìn thấy */}
