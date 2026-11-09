@@ -45,6 +45,7 @@ export function registrationText(r: RegistrationDetail): string {
     `Facebook: ${r.facebook}`,
     `Nơi sống: ${r.city}`,
     `Khung giờ liên hệ: ${r.contactTime}`,
+    `Mong muốn được giúp đỡ: ${r.consultationGoal || "Chưa cung cấp"}`,
     "",
     `Kết quả MBTI: ${r.mbti ?? "Chưa làm test"}${r.scores ? ` (${r.scores})` : ""}`,
     `Lĩnh vực: ${r.field ?? "Chưa làm test"}`,

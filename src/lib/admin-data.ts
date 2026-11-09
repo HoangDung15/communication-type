@@ -117,6 +117,7 @@ export type RegistrationDetail = {
   facebook: string;
   city: string;
   contactTime: string;
+  consultationGoal: string | null;
   mbti: string | null;
   field: string | null;
   scores: string | null;
@@ -134,7 +135,7 @@ export type RegistrationDetail = {
 
 const DETAIL_COLUMNS = `r.id::int, r.created_at AS "createdAt", r.updated_at AS "updatedAt", r.name,
   r.birth_year AS "birthYear", r.gender, r.job, r.phone, r.email, r.facebook, r.city,
-  r.contact_time AS "contactTime", r.mbti, r.field, r.scores, r.ref, r.manager_id AS "managerId",
+  r.contact_time AS "contactTime", r.consultation_goal AS "consultationGoal", r.mbti, r.field, r.scores, r.ref, r.manager_id AS "managerId",
   m.name AS "managerName", m.ref AS "managerRef", r.utm_source AS "utmSource", r.utm_medium AS "utmMedium",
   r.utm_campaign AS "utmCampaign", r.status, r.note, r.answers`;
 

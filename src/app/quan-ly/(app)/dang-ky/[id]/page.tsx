@@ -41,6 +41,7 @@ export default async function RegistrationDetailPage({ params }: Props) {
     ["Facebook", <a key="f" href={r.facebook} target="_blank" rel="noopener noreferrer" className="break-all text-brand-dark hover:underline">{r.facebook}</a>],
     ["Nơi sống", r.city],
     ["Khung giờ liên hệ", r.contactTime],
+    ["Mong muốn được giúp đỡ qua buổi tư vấn", <span key="goal" className="whitespace-pre-wrap">{r.consultationGoal || "Chưa cung cấp"}</span>],
     ["Kết quả MBTI", hasResult
       ? <span key="m"><b>{r.mbti}</b>{r.scores && <span className="ml-1.5 text-muted">({r.scores})</span>}</span>
       : <span key="m" className="text-muted">Chưa làm test</span>],
