@@ -14,8 +14,8 @@ export async function insertRegistration(p: RegisterPayload, manager: Manager | 
   const { rows } = await getPool().query<{ id: string }>(
     `INSERT INTO registrations
        (name, birth_year, gender, job, phone, email, facebook, city, contact_time,
-        mbti, field, scores, ref, manager_id, utm_source, utm_medium, utm_campaign, answers)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        mbti, field, scores, ref, manager_id, utm_source, utm_medium, utm_campaign, answers, consultation_goal)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
      RETURNING id`,
     [
       p.name,
@@ -36,6 +36,7 @@ export async function insertRegistration(p: RegisterPayload, manager: Manager | 
       p.utmMedium ?? null,
       p.utmCampaign ?? null,
       p.answers ?? null,
+      p.consultationGoal,
     ],
   );
   return Number(rows[0].id);

@@ -117,6 +117,7 @@ export const formSchema = z.object({
   facebook: facebookSchema,
   city: text(2, 150, "nơi sống"),
   contactTime: text(2, 300, "khung thời gian liên hệ"),
+  consultationGoal: text(2, 2000, "mong muốn được giúp đỡ"),
 });
 
 export type FormValues = z.input<typeof formSchema>;
