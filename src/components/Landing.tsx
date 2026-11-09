@@ -7,6 +7,8 @@ import { btnPrimary, btnSecondary, iconBtn } from "./ui";
 import { ConsultModal } from "./ConsultModal";
 import { FieldIcon } from "./FieldIcon";
 import { CirclesDiagram } from "./result/CirclesDiagram";
+import { ConsultationCallout } from "./result/ConsultationCallout";
+import { ResultPeek } from "./result/ResultPeek";
 import { ZoneModal } from "./result/ZoneModal";
 import { DIMENSIONS, QUESTIONS, type Choice } from "@/lib/questions";
 import { computeResult } from "@/lib/mbti";
@@ -264,7 +266,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
           <>
           <section aria-label="Kết quả của bạn" className="pt-8 lg:pt-4">
             <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4">
-              <section className="relative w-full overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
+              <ConsultationCallout onConsult={openConsult} />
+              <section id="result-summary" className="relative w-full scroll-mt-4 overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
                 <p className="relative text-sm font-semibold text-[#5c3d00]">Phong cách giao tiếp của bạn</p>
                 <h2 className="relative mt-1.5 text-[64px] font-extrabold leading-none tracking-[2px]">{storedType}</h2>
                 <span className="relative mt-4 inline-block rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-white">
@@ -283,30 +286,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
               )}
             </div>
           </section>
+          <ResultPeek type={storedType} targetId="result-summary" />
 
-        <div aria-label="Kết nối tư vấn" className="mx-auto w-full max-w-[640px] pt-8">
-          <h2 className="text-[22px] font-extrabold leading-[1.25] lg:text-[26px]">
-            TƯ VẤN CHUYÊN SÂU - PHÁT HUY TIỀM NĂNG GIAO TIẾP VƯỢT TRỘI
-          </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-body lg:text-base">
-            Bạn đã biết thế mạnh giao tiếp, nhận diện những điểm cần cải thiện và những năng lực ngành nghề đòi hỏi.
-            Nhưng làm thế nào để biến những hiểu biết đó thành thay đổi thực tế trong công việc?
-          </p>
-          <div className="relative mt-5 flex flex-col gap-3 overflow-hidden rounded-3xl bg-ink px-5 py-6 text-white lg:px-8 lg:py-8">
-            <p className="relative text-[17px] font-bold leading-[1.4] lg:text-[19px]">
-              Đăng ký phiên tư vấn 1:1 miễn phí cùng Advisor để:
-            </p>
-            <ol className="relative mt-1 flex flex-col gap-3 text-[15px] leading-relaxed text-line">
-              <li className="flex gap-2.5"><span className="font-bold text-sun">1.</span> Hiểu sâu hơn những điểm mạnh và rào cản trong phong cách giao tiếp.</li>
-              <li className="flex gap-2.5"><span className="font-bold text-sun">2.</span> Đối chiếu kết quả với những tình huống bạn đang gặp tại công sở.</li>
-              <li className="flex gap-2.5"><span className="font-bold text-sun">3.</span> Xác định hướng phát triển và hành động cụ thể để giao tiếp hiệu quả hơn.</li>
-            </ol>
-            <button type="button" onClick={openConsult} className="relative mt-3 inline-flex h-14 items-center justify-center gap-2.5 self-start rounded-2xl bg-sun px-8 text-[17px] font-bold text-ink transition-colors hover:bg-sun-deep">
-              KẾT NỐI TƯ VẤN 1:1
-              <ArrowRight />
-            </button>
-          </div>
-        </div>
           <div className="mx-auto w-full max-w-[640px] pt-6">
             <button type="button" onClick={restartQuiz} className="text-[15px] font-semibold text-brand-dark hover:underline">
               ← Làm lại bài test
