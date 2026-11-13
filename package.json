@@ -16,7 +16,6 @@
   "dependencies": {
     "@neon/config": "^1.9.6",
     "@neon/env": "^1.6.6",
-    "@vercel/analytics": "^2.0.1",
     "@vercel/functions": "^3.10.5",
     "next": "^16.4.3",
     "nodemailer": "^10.3.1",

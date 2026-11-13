@@ -84,7 +84,9 @@ function ConsultBody({
         <NoticeBody />
         <button
           type="button"
-          onClick={() => setAgreed(true)}
+          onClick={() => {
+            setAgreed(true);
+          }}
           className="inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-brand px-5 text-[17px] font-bold text-white transition-colors hover:bg-brand-dark"
         >
           Tôi đã hiểu, tiếp tục đăng ký

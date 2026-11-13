@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Be_Vietnam_Pro } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -43,8 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi" className={beVietnam.variable}>
       <body className="min-h-dvh font-sans">
         <AttributionCapture />
+        <Suspense fallback={null}><AnalyticsTracker /></Suspense>
         {children}
-        <Analytics />
       </body>
     </html>
   );

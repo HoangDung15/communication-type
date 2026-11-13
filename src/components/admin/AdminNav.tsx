@@ -7,6 +7,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const items = [
     { href: "/quan-ly", label: "Đăng ký", active: pathname === "/quan-ly" || pathname.startsWith("/quan-ly/dang-ky") },
+    { href: "/quan-ly/thong-ke", label: "Thống kê", active: pathname.startsWith("/quan-ly/thong-ke") },
     ...(isAdmin ? [{ href: "/quan-ly/nguoi-quan-ly", label: "Người quản lý", active: pathname.startsWith("/quan-ly/nguoi-quan-ly") }] : []),
     { href: "/quan-ly/tai-khoan", label: "Tài khoản", active: pathname.startsWith("/quan-ly/tai-khoan") },
   ];
