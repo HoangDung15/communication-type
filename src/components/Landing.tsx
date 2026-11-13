@@ -13,6 +13,7 @@ import { ZoneModal } from "./result/ZoneModal";
 import { DIMENSIONS, QUESTIONS, type Choice } from "@/lib/questions";
 import { computeResult } from "@/lib/mbti";
 import { quizStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
+import { trackEvent } from "@/lib/analytics";
 import type { ZonesFileEntry } from "@/lib/zones";
 import type { ZoneKey } from "@/lib/zones-types";
 
@@ -56,6 +57,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   const [seenZones, setSeenZones] = useState<Set<ZoneKey>>(new Set());
   const [step, setStep] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const quizReadyToCount = useRef(false);
+  const quizCompletionTracked = useRef(false);
 
   const storedType = result?.type;
   const fields = storedType ? (fieldsByType[storedType] ?? []) : [];
@@ -85,6 +88,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   }, [answers, current, loaded]);
 
   const openConsult = useCallback(() => {
+    trackEvent("registration_opened", "modal");
     setThanks(false);
     setModalOpen(true);
   }, []);
@@ -106,6 +110,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     resultStore.set(stored);
     setResult(stored);
     setSelectedField(stored.field ?? null);
+    quizReadyToCount.current = true;
   }, []);
 
   const confirmField = useCallback(() => {
@@ -115,6 +120,10 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     setResult(next);
     setOpenZone(null);
     setSeenZones(new Set());
+    if (quizReadyToCount.current && !quizCompletionTracked.current) {
+      quizCompletionTracked.current = true;
+      trackEvent("quiz_completed");
+    }
     goToStep(STEP.RESULT);
   }, [result, selectedField, goToStep]);
 
@@ -122,6 +131,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
     if (timer.current) clearTimeout(timer.current);
     setCurrent(0);
     setAnswers(Array(TOTAL).fill(null));
+    quizReadyToCount.current = false;
+    quizCompletionTracked.current = false;
     goToStep(STEP.QUIZ);
   }, [goToStep]);
 
@@ -268,6 +279,8 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
                 onRestart={() => {
                   setCurrent(0);
                   setAnswers(Array(TOTAL).fill(null));
+                  quizReadyToCount.current = false;
+                  quizCompletionTracked.current = false;
                 }}
               />
             )}
