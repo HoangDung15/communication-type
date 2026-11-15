@@ -14,4 +14,3 @@ next-env.d.ts
 npm-debug.log*
 .neon
 .env*
-!.env.example
