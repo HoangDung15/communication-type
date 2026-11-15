@@ -14,3 +14,8 @@ next-env.d.ts
 npm-debug.log*
 .neon
 .env*
+
+# Ghi chú nội bộ và cấu hình công cụ, không đưa lên GitHub
+/docs/
+/.claude/
+/.omc/
