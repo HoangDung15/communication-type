@@ -23,6 +23,8 @@ const COMPLETIONS = join(process.cwd(), "src", "data", "zones-completions.json")
 // Cột bị bỏ qua khi đồng bộ: bản nháp đang viết lại, và cột Kế toán
 // (theo yêu cầu: không dùng lĩnh vực "Kế toán - Tài chính - Ngân hàng").
 const IGNORED_COLUMN = /\(updated\)|kế toán/i;
+// Dòng tiêu đề của ô phân tích chuyên sâu (có thể có #, ** hoặc khoảng trắng đầu ô).
+const DEEP_HEADING = /^[#*\s]*PHÂN TÍCH CHUYÊN SÂU[*:\s]*\n?/i;
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -278,6 +280,14 @@ async function main() {
     // các tab khác bắt đầu bằng "Lãnh đạo" ở A1. Không bỏ cột đầu mặc định.
     const rawHeader = (rows[0] ?? []).map((h) => h.replace(/\s+/g, " ").trim());
     const rawContent = rows[1] ?? [];
+    // Ô "PHÂN TÍCH CHUYÊN SÂU" nằm ở một dòng bên dưới (hiện là dòng 4), cùng cột với lĩnh vực.
+    const deepAt = (column: number): string | undefined => {
+      for (const row of rows.slice(2)) {
+        const cell = (row[column] ?? "").trim();
+        if (DEEP_HEADING.test(cell)) return cell.replace(DEEP_HEADING, "").trim() || undefined;
+      }
+      return undefined;
+    };
     const tab: Record<string, ZonesFileEntry> = {};
     for (let column = 0; column < rawHeader.length; column++) {
       const name = rawHeader[column];
@@ -304,6 +314,9 @@ async function main() {
 
       const entry = toEntry(text);
       applyCompletion(type, field, entry);
+      const deep = deepAt(column);
+      if (deep) entry.deep = deep;
+      else warnings.push(`${type} × ${field}: chưa có ô PHÂN TÍCH CHUYÊN SÂU, popup vùng vàng dùng câu mặc định`);
       if (!entry.complete) warnings.push(`${type} × ${field}: ${entry.diag ?? "thiếu zone"}, sẽ hiện disabled kèm ghi chú`);
       const { diag: _diag, ...clean } = entry;
       tab[field] = clean;

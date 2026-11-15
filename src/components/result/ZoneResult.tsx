@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { CirclesDiagram } from "./CirclesDiagram";
+import { ZoneJourney, isUnlocked, journeyNextProps } from "./ZoneJourney";
 import { ZoneModal } from "./ZoneModal";
 import { RestartButton } from "./RestartButton";
 import { SiteHeader } from "../SiteHeader";
 import { DimensionBars } from "./DimensionBars";
 import { LoadError } from "../LoadError";
-import { ConsultationCallout } from "./ConsultationCallout";
-import { ResultPeek } from "./ResultPeek";
+import { ConsultationCallout, RegisteredNote } from "./ConsultationCallout";
+import { useRegistered } from "@/lib/use-registered";
+import { ConsultStickyBar } from "./ConsultStickyBar";
 import type { ZonesFileEntry } from "@/lib/zones";
 import type { ZoneKey } from "@/lib/zones-types";
 
@@ -26,6 +27,7 @@ export function ZoneResult({
 }) {
   const [openZone, setOpenZone] = useState<ZoneKey | null>(null);
   const [seen, setSeen] = useState<Set<ZoneKey>>(new Set());
+  const registered = useRegistered();
 
   function pickZone(key: ZoneKey) {
     setSeen((prev) => new Set(prev).add(key));
@@ -51,8 +53,8 @@ export function ZoneResult({
     <div className="flex min-h-dvh flex-col">
       <SiteHeader right={<RestartButton />} />
       <main className="mx-auto flex w-full max-w-6xl flex-col items-center gap-4 px-4 pb-8 pt-4 lg:gap-8 lg:px-10 lg:pb-16 lg:pt-8">
-        <ConsultationCallout onConsult={onConsult} />
-        <section id="result-summary" className="relative w-full max-w-[560px] scroll-mt-4 overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
+        {registered ? <RegisteredNote /> : <ConsultationCallout onConsult={onConsult} />}
+        <section id="result-summary" className="relative w-full max-w-[560px] scroll-mt-4 overflow-hidden rounded-2xl bg-sun px-5 py-6 text-center">
           <p className="relative text-sm font-semibold text-[#5c3d00]">Phong cách giao tiếp của bạn</p>
           <h1 className="relative mt-1.5 text-[64px] font-extrabold leading-none tracking-[2px]">{type}</h1>
           <span className="relative mt-4 inline-block rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-white">
@@ -60,18 +62,27 @@ export function ZoneResult({
           </span>
         </section>
         <DimensionBars type={type} />
-        <CirclesDiagram seen={seen} onSelect={pickZone} />
+        <div className="w-full max-w-[560px]">
+          <ZoneJourney zones={entry.zones} seen={seen} onSelect={pickZone} />
+        </div>
       </main>
-      <ResultPeek type={type} targetId="result-summary" />
+      <ConsultStickyBar show={!registered && isUnlocked(seen)} onConsult={onConsult} />
       {openZone && zone && (
         <ZoneModal
+          key={openZone}
           zoneKey={openZone}
           zone={zone}
           onClose={() => setOpenZone(null)}
-          onConsult={() => {
-            setOpenZone(null);
-            onConsult();
-          }}
+          deep={entry.deep}
+          {...journeyNextProps(openZone, seen, pickZone)}
+          onConsult={
+            registered
+              ? undefined
+              : () => {
+                  setOpenZone(null);
+                  onConsult();
+                }
+          }
         />
       )}
     </div>

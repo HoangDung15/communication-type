@@ -31,13 +31,13 @@ export const ZoneCards = forwardRef<HTMLElement, { entry: ZonesFileEntry; onCta:
             key={key}
             id={`zone-${key}`}
             aria-label={ZONE_LABELS[key]}
-            className={`flex scroll-mt-24 flex-col gap-3.5 rounded-[20px] border-2 px-4 py-5 lg:px-6 lg:py-6 ${
+            className={`flex scroll-mt-24 flex-col gap-3.5 rounded-xl border-2 px-4 py-5 lg:px-6 lg:py-6 ${
               key === "yellow" ? "border-sun-deep bg-[#fff8e1]" : "border-line bg-white"
             }`}
           >
             <div className="flex items-center gap-2.5">
               <span
-                className={`flex size-9 shrink-0 items-center justify-center rounded-[10px] text-base font-extrabold ${
+                className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-base font-extrabold ${
                   key === "yellow" ? "bg-sun text-sun-ink" : "bg-ink text-white"
                 }`}
               >
@@ -49,7 +49,7 @@ export const ZoneCards = forwardRef<HTMLElement, { entry: ZonesFileEntry; onCta:
               </div>
             </div>
             {z.avatar && (
-              <p className="rounded-xl bg-cream px-3.5 py-2.5 text-sm font-semibold text-body">
+              <p className="rounded-[10px] bg-cream px-3.5 py-2.5 text-sm font-semibold text-body">
                 Hình ảnh đại diện: {z.avatar}
               </p>
             )}
@@ -58,7 +58,7 @@ export const ZoneCards = forwardRef<HTMLElement, { entry: ZonesFileEntry; onCta:
               <button
                 type="button"
                 onClick={onCta}
-                className="mt-1 inline-flex h-[52px] items-center justify-center gap-2 rounded-2xl bg-brand px-6 text-base font-bold text-white transition-colors hover:bg-brand-dark"
+                className="mt-1 inline-flex h-[52px] items-center justify-center gap-2 rounded-xl bg-brand px-6 text-base font-bold text-white transition-colors hover:bg-brand-dark"
               >
                 Kết nối nhận tư vấn tại đây
               </button>

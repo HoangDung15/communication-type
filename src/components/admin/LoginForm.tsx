@@ -34,7 +34,7 @@ export function LoginForm() {
         <input id="password" name="password" type="password" required autoComplete="current-password" className={adminInput} />
       </div>
       {state?.error && (
-        <p role="alert" className="flex items-start gap-2 rounded-xl bg-peach-soft px-3.5 py-3 text-sm text-danger">
+        <p role="alert" className="flex items-start gap-2 rounded-[10px] bg-peach-soft px-3.5 py-3 text-sm text-danger">
           <AlertCircle size={18} className="mt-px shrink-0" />
           {state.error}
         </p>

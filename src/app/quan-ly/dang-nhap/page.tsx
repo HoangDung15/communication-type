@@ -15,7 +15,7 @@ export default async function LoginPage() {
         <div className="absolute -left-24 -top-28 size-[300px] rounded-full bg-sun-light" />
         <div className="absolute -bottom-24 -right-16 size-60 rounded-full bg-[#cdefe0]" />
       </div>
-      <main className="relative w-full max-w-[400px] rounded-[28px] border border-line bg-white px-6 py-8 sm:px-8">
+      <main className="relative w-full max-w-[400px] rounded-2xl border border-line bg-white px-6 py-8 sm:px-8">
         <div className="flex items-center gap-2">
           <SunLogo />
           <span className="text-[15px] font-bold">BETTER TALK, BETTER WORK</span>

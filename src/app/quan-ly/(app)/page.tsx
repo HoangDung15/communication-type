@@ -3,6 +3,8 @@ import { adminBtnPrimary, adminBtnSecondary, adminCard, adminInput, formatDateTi
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { countByStatus, listManagerOptions, listRegistrations, PAGE_SIZE, parseFilters, type Filters } from "@/lib/admin-data";
 import { requireUser } from "@/lib/auth";
+import { sheetUrl } from "@/lib/google-sheets";
+import { getUserSheet } from "@/lib/sheet-sync";
 import { MBTI_TYPES } from "@/lib/mbti";
 import { STATUSES } from "@/lib/statuses";
 
@@ -22,10 +24,11 @@ export default async function RegistrationsPage({ searchParams }: Props) {
   const filters = parseFilters(await searchParams);
   const isAdmin = user.role === "admin";
 
-  const [{ rows, total }, counts, managers] = await Promise.all([
+  const [{ rows, total }, counts, managers, sheet] = await Promise.all([
     listRegistrations(user, filters),
     countByStatus(user, filters),
     isAdmin ? listManagerOptions() : Promise.resolve([]),
+    getUserSheet(user.id),
   ]);
   const allCount = Object.values(counts).reduce((a, b) => a + b, 0);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -40,9 +43,15 @@ export default async function RegistrationsPage({ searchParams }: Props) {
             {isAdmin ? "Tất cả đăng ký" : `Khách của ${user.displayName}`} · {total} kết quả
           </p>
         </div>
-        <a href={`/quan-ly/xuat-file${qs(filters)}`} className={adminBtnSecondary}>
-          Tải file Excel
-        </a>
+        {sheet ? (
+          <a href={sheetUrl(sheet.sheetId)} target="_blank" rel="noopener noreferrer" className={adminBtnSecondary}>
+            Mở Google Sheet ↗
+          </a>
+        ) : (
+          <Link href="/quan-ly/tai-khoan#google-sheet" className={adminBtnSecondary}>
+            Kết nối Google Sheet
+          </Link>
+        )}
       </div>
 
       {/* Lọc theo trạng thái */}

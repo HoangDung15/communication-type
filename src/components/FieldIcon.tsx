@@ -26,7 +26,7 @@ export function FieldIcon({ name, index, active }: { name: string; index: number
   const Icon = RULES.find((r) => r.match.test(name))?.Icon ?? Briefcase;
   const tone = active ? "bg-brand text-white" : TONES[index % TONES.length];
   return (
-    <span className={`flex size-10 items-center justify-center rounded-xl ${tone}`}>
+    <span className={`flex size-10 items-center justify-center rounded-[10px] ${tone}`}>
       <Icon size={22} />
     </span>
   );

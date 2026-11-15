@@ -27,7 +27,7 @@ export function NoteForm({ id, note }: { id: number; note: string }) {
           setDirty(true);
         }}
         placeholder="VD: Đã gọi lúc 19h, hẹn tư vấn thứ 7 lúc 9h sáng…"
-        className="w-full resize-y rounded-xl border-[1.5px] border-line-strong bg-white px-3 py-2.5 text-[15px] leading-relaxed focus:border-sun-deep focus:outline-none"
+        className="w-full resize-y rounded-[10px] border-[1.5px] border-line-strong bg-white px-3 py-2.5 text-[15px] leading-relaxed focus:border-sun-deep focus:outline-none"
       />
       <div className="flex items-center gap-3">
         <button type="submit" disabled={pending || !dirty} className={adminBtnPrimary}>

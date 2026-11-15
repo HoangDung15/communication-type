@@ -13,7 +13,7 @@ export function RestartButton() {
         resetAll();
         router.push("/quiz");
       }}
-      className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-brand-dark hover:bg-peach-soft"
+      className="inline-flex h-11 items-center gap-1.5 rounded-[10px] px-3 text-sm font-semibold text-brand-dark hover:bg-peach-soft"
     >
       <Refresh size={16} />
       Làm lại

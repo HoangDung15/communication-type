@@ -1,34 +1,37 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Blobs, SiteHeader } from "./SiteHeader";
-import { ArrowRight, Check, Clock, Grid, ListCheck } from "./icons";
-import { btnPrimary, btnSecondary, iconBtn } from "./ui";
+import { Blobs } from "./SiteHeader";
+import { ArrowRight, Check } from "./icons";
+import { btnPrimary, btnSecondary } from "./ui";
+import Image from "next/image";
+import { SalesLanding } from "./landing/SalesLanding";
+import { TYPE_PROFILES, typeImage } from "@/lib/type-profiles";
 import { ConsultModal } from "./ConsultModal";
 import { FieldIcon } from "./FieldIcon";
-import { CirclesDiagram } from "./result/CirclesDiagram";
-import { ConsultationCallout, ConsultationContent } from "./result/ConsultationCallout";
-import { ResultPeek } from "./result/ResultPeek";
+import { ZoneJourney, isUnlocked, journeyNextProps } from "./result/ZoneJourney";
+import { ConsultationCallout, RegisteredNote } from "./result/ConsultationCallout";
+import { useRegistered } from "@/lib/use-registered";
+import { ConsultStickyBar } from "./result/ConsultStickyBar";
 import { ZoneModal } from "./result/ZoneModal";
 import { DIMENSIONS, QUESTIONS, type Choice } from "@/lib/questions";
 import { computeResult } from "@/lib/mbti";
-import { quizStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
+import { quizStore, resultStore, type StoredResult } from "@/lib/client-store";
 import { trackEvent } from "@/lib/analytics";
 import type { ZonesFileEntry } from "@/lib/zones";
 import type { ZoneKey } from "@/lib/zones-types";
 
-// Landing một trang cuộn (FLOW_PLAN §1): intro → bài test → kết quả → tư vấn.
+// Trang chủ: landing cuộn (SalesLanding) → bài test + chọn lĩnh vực → kết quả + tư vấn.
 
 type LandingProps = {
   fieldsByType: Record<string, string[]>;
-  fieldCount: number;
   zoneEntries: Record<string, Record<string, ZonesFileEntry>>;
   validCodes: string[] | null;
 };
 
 const TOTAL = QUESTIONS.length;
 const AUTO_ADVANCE_MS = 260;
-const STEP = { INTRO: 0, EXPLORE: 1, CONSULTATION: 2, QUIZ: 3, RESULT: 4 } as const;
+const STEP = { INTRO: 0, QUIZ: 1, RESULT: 2 } as const;
 
 function randomizeAnswerSides(): Choice[] {
   const first = QUESTIONS.map((): Choice => Math.random() < 0.5 ? "a" : "b");
@@ -42,9 +45,8 @@ function randomizeAnswerSides(): Choice[] {
   return first;
 }
 
-export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: LandingProps) {
+export function Landing({ fieldsByType, zoneEntries, validCodes }: LandingProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [thanks, setThanks] = useState(false);
   const [result, setResult] = useState<StoredResult | null>(null);
 
   // Quiz state (giữ logic Quiz.tsx, thêm bước chọn lĩnh vực)
@@ -55,6 +57,7 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [openZone, setOpenZone] = useState<ZoneKey | null>(null);
   const [seenZones, setSeenZones] = useState<Set<ZoneKey>>(new Set());
+  const registered = useRegistered();
   const [step, setStep] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const quizReadyToCount = useRef(false);
@@ -89,7 +92,6 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
 
   const openConsult = useCallback(() => {
     trackEvent("registration_opened", "modal");
-    setThanks(false);
     setModalOpen(true);
   }, []);
 
@@ -161,92 +163,13 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
 
       <main className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 lg:px-10">
         {step === STEP.INTRO && (
-        <section aria-labelledby="intro-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
-          <div className="flex flex-1 flex-col justify-center">
-            <h1 id="intro-title" className="mt-[18px] text-[34px] font-extrabold leading-[1.18] tracking-[-0.5px] sm:text-[44px] lg:mt-6 lg:text-[56px] lg:leading-[1.12] lg:tracking-[-1px]">
-              BETTER <span className="text-brand">TALK</span>, BETTER <span className="text-brand">WORK</span>            
-            </h1>
-              <h2 className="mt-6 max-w-[540px] text-[26px] font-extrabold leading-[1.2] tracking-[-0.5px] sm:text-[32px] lg:mt-8 lg:text-[40px]">
-                VỀ DỰ ÁN
-              </h2>
-              <p className="mt-3 max-w-[540px] text-base leading-relaxed text-body lg:mt-4 lg:text-[19px]">
-                Một ngày công sở có hàng chục cuộc trò chuyện: từ trình bày ý tưởng trong cuộc họp, trao đổi với cấp trên đến phối hợp cùng đồng nghiệp và thuyết phục khách hàng. <br /><br />
-                
-                Mỗi người có một cách giao tiếp riêng, nhưng không phải cách nào cũng phù hợp với mọi tình huống và yêu cầu công việc. <br /><br />
-                
-                <strong>BETTER TALK, BETTER WORK</strong> ra đời với mong muốn giúp người đi làm hiểu rõ phong cách giao tiếp của bản thân, nhận diện yêu cầu giao tiếp trong ngành nghề và phát triển những năng lực cần thiết để làm việc hiệu quả, tạo dấu ấn riêng trong sự nghiệp.
-              </p>
-
-            <ul className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 lg:mt-7 lg:justify-start lg:gap-x-6">
-              <li className="flex items-center gap-1.5 text-sm font-medium text-body lg:text-[15px]">
-                <ListCheck size={18} className="text-brand" />
-                {TOTAL} câu hỏi
-              </li>
-              <li className="flex items-center gap-1.5 text-sm font-medium text-body lg:text-[15px]">
-                <Clock size={18} className="text-brand" />
-                Khoảng 3 phút
-              </li>
-              <li className="flex items-center gap-1.5 text-sm font-medium text-body lg:text-[15px]">
-                <Grid size={18} className="text-brand" />
-                {fieldCount} lĩnh vực
-              </li>
-            </ul>
-            <div className="mt-8 flex flex-col lg:mt-9 lg:flex-row lg:items-center lg:gap-5">
-              <button type="button" onClick={() => goToStep(STEP.EXPLORE)} className={`${btnPrimary} w-full lg:h-[60px] lg:w-auto lg:px-8 lg:text-lg`}>
-                Bài test
-                <ArrowRight />
-              </button>
-              <button
-                type="button"
-                onClick={openConsult}
-                className="mt-3 text-center text-[15px] font-semibold text-brand-dark hover:underline lg:mt-0"
-              >
-                Kết nối tư vấn miễn phí →
-              </button>
-            </div>
-          </div>
-        </section>
-        )}
-
-        {step === STEP.EXPLORE && (
-        <section aria-labelledby="explore-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
-          <div className="my-auto flex w-full max-w-[600px] flex-col">
-            <h1 id="explore-title" className="text-[32px] font-extrabold leading-[1.15] tracking-[-0.5px] sm:text-[40px] lg:text-[52px] lg:leading-[1.1]">
-              KHÁM PHÁ PHONG CÁCH GIAO TIẾP CỦA BẠN
-            </h1>
-            <br/>
-            <p className="mt-4 text-base leading-relaxed text-body lg:text-[17px]">
-              <strong>MBTI (Myers-Briggs Type Indicator)</strong> là công cụ khám phá xu hướng tính cách thông qua 4 cặp đặc điểm: cách bạn tiếp nhận năng lượng, thu thập thông tin, đưa ra quyết định và tổ chức cuộc sống.
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-body lg:text-[17px]">
-              Dựa trên nền tảng MBTI kết hợp với đặc thù ngành nghề, bài test giúp bạn khám phá cách tư duy, tương tác, truyền đạt thông tin; nhận diện thế mạnh, những rào cản trong giao tiếp và năng lực cần phát triển để thích nghi tốt hơn với môi trường làm việc.
-            </p>
-            <StepNav
-              onBack={() => goToStep(STEP.INTRO)}
-              nextLabel="Tiếp theo"
-              onNext={() => goToStep(STEP.CONSULTATION)}
-            />
-          </div>
-        </section>
-        )}
-
-        {step === STEP.CONSULTATION && (
-        <section aria-labelledby="consultation-intro-title" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
-          <div className="my-auto w-full max-w-[600px]">
-            <ConsultationContent plain />
-            <StepNav
-              onBack={() => goToStep(STEP.EXPLORE)}
-              nextLabel="Bắt đầu bài test"
-              onNext={() => goToStep(STEP.QUIZ)}
-            />
-          </div>
-        </section>
+          <SalesLanding onStartTest={() => goToStep(STEP.QUIZ)} onConsult={openConsult} />
         )}
 
         {step === STEP.QUIZ && (
         <section aria-label="Bài test" className="flex min-h-[calc(100dvh-160px)] flex-1 flex-col justify-center py-8 lg:py-4">
-          <div className="mx-auto w-full max-w-[720px] rounded-[28px] border border-line bg-white px-5 py-7 md:px-10 md:py-9">
-            <button type="button" onClick={() => goToStep(STEP.CONSULTATION)} className="mb-5 text-[15px] font-semibold text-brand-dark hover:underline">
+          <div className="mx-auto w-full max-w-[720px] rounded-2xl border border-line bg-white px-5 py-7 md:px-10 md:py-9">
+            <button type="button" onClick={() => goToStep(STEP.INTRO)} className="mb-5 text-[15px] font-semibold text-brand-dark hover:underline">
               ← Quay lại
             </button>
             {!testDone ? (
@@ -276,12 +199,6 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
                 selected={selectedField}
                 onSelect={setSelectedField}
                 onConfirm={confirmField}
-                onRestart={() => {
-                  setCurrent(0);
-                  setAnswers(Array(TOTAL).fill(null));
-                  quizReadyToCount.current = false;
-                  quizCompletionTracked.current = false;
-                }}
               />
             )}
           </div>
@@ -293,33 +210,22 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
           <>
           <section aria-label="Kết quả của bạn" className="pt-8 lg:pt-4">
             <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4">
-              <ConsultationCallout onConsult={openConsult} />
-              <section id="result-summary" className="relative w-full scroll-mt-4 overflow-hidden rounded-3xl bg-sun px-5 py-6 text-center">
-                <p className="relative text-sm font-semibold text-[#5c3d00]">Phong cách giao tiếp của bạn</p>
-                <h2 className="relative mt-1.5 text-[64px] font-extrabold leading-none tracking-[2px]">{storedType}</h2>
-                <span className="relative mt-4 inline-block rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-white">
-                  Lĩnh vực: {result.field}
-                </span>
-              </section>
+              <button type="button" onClick={restartQuiz} className="self-start text-[15px] font-semibold text-brand-dark hover:underline">
+                ← Làm lại bài test
+              </button>
+              <TypeCard type={storedType} field={result.field} />
               {complete && entry ? (
-                <>
-                  <CirclesDiagram seen={seenZones} onSelect={pickZone} />
-                </>
+                <ZoneJourney zones={entry.zones} seen={seenZones} onSelect={pickZone} />
               ) : (
-                <div className="w-full rounded-3xl border border-dashed border-line-strong bg-white px-5 py-6 text-[15px] leading-relaxed text-body">
+                <div className="w-full rounded-2xl border border-dashed border-line-strong bg-white px-5 py-6 text-[15px] leading-relaxed text-body">
                   Nội dung cho {storedType} trong lĩnh vực “{result.field}” đang được hoàn thiện. Bạn chọn lĩnh vực
                   khác hoặc đăng ký tư vấn trực tiếp nhé.
                 </div>
               )}
+              {registered ? <RegisteredNote /> : <ConsultationCallout onConsult={openConsult} />}
             </div>
           </section>
-          <ResultPeek type={storedType} targetId="result-summary" />
-
-          <div className="mx-auto w-full max-w-[640px] pt-6">
-            <button type="button" onClick={restartQuiz} className="text-[15px] font-semibold text-brand-dark hover:underline">
-              ← Làm lại bài test
-            </button>
-          </div>
+          <ConsultStickyBar show={!registered && Boolean(complete) && isUnlocked(seenZones)} onConsult={openConsult} />
           </>
         )}
       </main>
@@ -328,78 +234,58 @@ export function Landing({ fieldsByType, fieldCount, zoneEntries, validCodes }: L
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         validCodes={validCodes}
-        onSuccess={(info) => {
-          thanksStore.set({ name: info.name, email: "", emailSent: false });
-          setThanks(true);
-        }}
       />
       {openZone && complete && entry?.zones[openZone] && (
         <ZoneModal
+          key={openZone}
           zoneKey={openZone}
           zone={entry.zones[openZone]!}
           onClose={() => setOpenZone(null)}
-          onConsult={() => {
-            setOpenZone(null);
-            openConsult();
-          }}
-        />
-      )}
-      {thanks && (
-        <ThanksOverlay
-          onClose={() => setThanks(false)}
-          onBackToResult={() => {
-            setThanks(false);
-            setModalOpen(false);
-            goToStep(STEP.RESULT);
-          }}
+          deep={entry?.deep}
+          {...journeyNextProps(openZone, seenZones, pickZone)}
+          onConsult={
+            registered
+              ? undefined
+              : () => {
+                  setOpenZone(null);
+                  openConsult();
+                }
+          }
         />
       )}
     </div>
   );
 }
 
-function LandingHeader({ onConsult, onTest }: { onConsult: () => void; onTest: () => void }) {
+// Thẻ nhân vật: ảnh chibi (nếu có) + mã + biệt danh + 3 nhãn + lĩnh vực.
+function TypeCard({ type, field }: { type: string; field: string }) {
+  const profile = TYPE_PROFILES[type];
+  const img = typeImage(type);
   return (
-    <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-5 pt-5 lg:px-10 lg:pt-7">
-      <span className="text-[15px] font-bold lg:text-lg">BETTER TALK, BETTER WORK</span>
-      <nav className="flex items-center gap-2" aria-label="Điều hướng chính">
-        <button
-          type="button"
-          onClick={onTest}
-          className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-semibold text-brand-dark hover:bg-peach-soft"
-        >
-          Bài test
-        </button>
-        <button
-          type="button"
-          onClick={onConsult}
-          className="inline-flex h-11 items-center rounded-xl bg-brand px-4 text-sm font-bold text-white transition-colors hover:bg-brand-dark"
-        >
-          Kết nối tư vấn
-        </button>
-      </nav>
-    </header>
-  );
-}
-
-function StepNav({ onBack, nextLabel, onNext }: { onBack?: () => void; nextLabel: string; onNext: () => void }) {
-  return (
-    <div className="mt-8 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-      {onBack ? (
-        <button type="button" onClick={onBack} className={`${btnSecondary} w-full md:w-auto md:px-6`}>
-          Quay lại
-        </button>
-      ) : (
-        <span className="hidden md:block" />
+    <section id="result-summary" className="relative w-full scroll-mt-4 overflow-hidden rounded-2xl bg-sun px-5 py-6 text-center">
+      {img && (
+        <div className="mx-auto size-[168px] overflow-hidden rounded-full bg-sun-soft sm:size-[200px]">
+          <Image src={img} alt={`Nhân vật ${type}`} width={400} height={400} priority className="size-full object-cover" />
+        </div>
       )}
-      <button type="button" onClick={onNext} className={`${btnPrimary} w-full md:w-auto md:px-7`}>
-        {nextLabel}
-        <ArrowRight />
-      </button>
-    </div>
+      <p className={`text-sm font-semibold text-[#5c3d00] ${img ? "mt-3" : ""}`}>Phong cách giao tiếp của bạn</p>
+      <h2 className="mt-1 text-[56px] font-extrabold leading-none tracking-[2px] sm:text-[64px]">{type}</h2>
+      {profile && (
+        <>
+          <p className="mt-1.5 text-lg font-extrabold">{profile.nickname}</p>
+          <ul className="mt-3 flex flex-wrap justify-center gap-1.5">
+            {profile.tags.map((t) => (
+              <li key={t} className="rounded-full bg-white/85 px-3 py-1 text-[13px] font-semibold text-ink">{t}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      <span className="mt-4 inline-block rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-white">Lĩnh vực: {field}</span>
+    </section>
   );
 }
 
+// Lời mời tư vấn rút gọn ngay dưới thẻ; khối đầy đủ nằm dưới sơ đồ.
 function QuizBody({
   answers, firstChoice, current, loaded, selected, percent, onChoose, onPrev, onNext,
 }: {
@@ -430,7 +316,7 @@ function QuizBody({
           </div>
         </div>
       </div>
-      <span className="mt-7 self-start rounded-full bg-mint-soft px-3 py-1.5 text-[13px] font-semibold text-mint-dark">
+      <span className="mt-7 inline-block rounded-full bg-mint-soft px-3 py-1.5 text-[13px] font-semibold text-mint-dark">
         Nhóm {groupNumber} · {dim.quizLabel}
       </span>
       <h2 key={current} className="mt-3.5 text-2xl font-bold leading-[1.35] md:text-[28px]">{q.text}</h2>
@@ -443,11 +329,11 @@ function QuizBody({
               type="button"
               aria-pressed={active}
               onClick={() => onChoose(c)}
-              className={`flex items-start gap-3.5 rounded-[18px] border-2 px-4 py-[18px] text-left transition-colors md:min-h-[150px] md:flex-col md:rounded-[20px] md:p-5 ${
+              className={`flex items-start gap-3.5 rounded-xl border-2 px-4 py-[18px] text-left transition-colors md:min-h-[150px] md:flex-col md:rounded-xl md:p-5 ${
                 active ? "border-brand bg-peach-soft" : "border-line bg-white hover:border-line-strong hover:bg-cream"
               }`}
             >
-              <span className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] font-bold uppercase md:size-9 ${active ? "bg-brand text-white" : "bg-[#fff4d6] text-sun-ink"}`}>{index === 0 ? "a" : "b"}</span>
+              <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg font-bold uppercase md:size-9 ${active ? "bg-brand text-white" : "bg-[#fff4d6] text-sun-ink"}`}>{index === 0 ? "a" : "b"}</span>
               <span className={`pt-1 text-base leading-normal md:pt-0 md:text-[17px] ${active ? "font-medium" : ""}`}>{q[c]}</span>
             </button>
           );
@@ -465,7 +351,7 @@ function QuizBody({
 }
 
 function FieldStep({
-  type, fields, zoneEntries, selected, onSelect, onConfirm, onRestart,
+  type, fields, zoneEntries, selected, onSelect, onConfirm,
 }: {
   type: string;
   fields: string[];
@@ -473,12 +359,10 @@ function FieldStep({
   selected: string | null;
   onSelect: (f: string) => void;
   onConfirm: () => void;
-  onRestart: () => void;
 }) {
   return (
     <div id="chon-linh-vuc" className="scroll-mt-20">
       <div className="flex items-center gap-3">
-        <button type="button" aria-label="Quay lại câu hỏi" onClick={onRestart} className={iconBtn}>←</button>
         <div className="flex flex-1 flex-col gap-2">
           <div className="flex justify-between text-[13px] font-semibold md:text-sm">
             <span>Bước cuối</span>
@@ -504,7 +388,7 @@ function FieldStep({
               disabled={!complete}
               title={!complete ? "Nội dung đang hoàn thiện" : undefined}
               onClick={() => onSelect(field)}
-              className={`relative flex min-h-[118px] flex-col gap-3.5 rounded-[18px] border-2 p-4 text-left transition-colors ${
+              className={`relative flex min-h-[118px] flex-col gap-3.5 rounded-xl border-2 p-4 text-left transition-colors ${
                 active ? "border-brand bg-peach-soft" : "border-line bg-white hover:border-line-strong hover:bg-cream"
               } disabled:cursor-not-allowed disabled:opacity-60`}
             >
@@ -525,35 +409,6 @@ function FieldStep({
           Xem kết quả của tôi
           <ArrowRight />
         </button>
-      </div>
-    </div>
-  );
-}
-
-function ThanksOverlay({ onClose, onBackToResult }: { onClose: () => void; onBackToResult: () => void }) {
-  const hasResult = Boolean(resultStore.get()?.field);
-  return (
-    <div role="dialog" aria-modal="true" aria-label="Đăng ký thành công" className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div aria-hidden="true" className="absolute inset-0 bg-ink/55" />
-      <div className="relative w-full max-w-[480px] rounded-t-[24px] bg-white px-5 py-7 text-center shadow-2xl sm:rounded-[24px] sm:px-8">
-        <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-mint text-white">
-          <Check size={40} />
-        </div>
-        <h2 className="mt-4 text-2xl font-extrabold">Cảm ơn bạn!</h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-body">
-          Đội ngũ đã nhận được thông tin và sẽ sớm liên hệ với bạn.
-        </p>
-        <div className="mt-6 flex flex-col gap-2">
-          {hasResult && (
-            <button type="button" onClick={onBackToResult} className={btnPrimary}>
-              Xem lại kết quả của tôi
-              <ArrowRight />
-            </button>
-          )}
-          <button type="button" onClick={onClose} className="inline-flex h-12 items-center justify-center rounded-2xl text-[15px] font-semibold text-brand-dark hover:bg-peach-soft">
-            {hasResult ? "Ở lại trang này" : "Đóng"}
-          </button>
-        </div>
       </div>
     </div>
   );

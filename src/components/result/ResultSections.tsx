@@ -29,9 +29,9 @@ export function ResultSections({ sections }: { sections: Section[] }) {
       {shown.map((section, i) => {
         const { Icon, tone } = SECTION_ICONS[i % SECTION_ICONS.length];
         return (
-          <section key={i} className="flex flex-col gap-3.5 rounded-[20px] border border-line bg-white px-4 py-5 lg:px-6 lg:py-6">
+          <section key={i} className="flex flex-col gap-3.5 rounded-xl border border-line bg-white px-4 py-5 lg:px-6 lg:py-6">
             <div className="flex items-center gap-2.5">
-              <span className={`flex size-9 shrink-0 items-center justify-center rounded-[10px] ${tone}`}>
+              <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${tone}`}>
                 <Icon size={20} />
               </span>
               <h2 className="text-lg font-bold leading-snug">{section.title}</h2>
@@ -46,7 +46,7 @@ export function ResultSections({ sections }: { sections: Section[] }) {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="inline-flex h-12 items-center justify-center gap-1.5 rounded-2xl border border-line-strong bg-white text-[15px] font-semibold text-brand-dark hover:bg-peach-soft"
+          className="inline-flex h-12 items-center justify-center gap-1.5 rounded-xl border border-line-strong bg-white text-[15px] font-semibold text-brand-dark hover:bg-peach-soft"
         >
           Xem thêm {hidden} mục
           <ChevronDown size={18} />
@@ -60,7 +60,7 @@ function BlockView({ block }: { block: Block }) {
   if (block.kind !== "group") return <ItemView item={block} />;
   const style = GROUP_STYLES[block.tone];
   return (
-    <div className={`rounded-2xl p-3.5 ${style.box}`}>
+    <div className={`rounded-xl p-3.5 ${style.box}`}>
       <h3 className={`mb-2.5 text-[15px] font-bold ${style.title}`}>{block.title}</h3>
       <ItemList items={block.items} tone={block.tone} />
     </div>

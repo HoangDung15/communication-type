@@ -28,13 +28,13 @@ export function ChangePasswordForm() {
         <input name="confirm" type="password" required minLength={8} autoComplete="new-password" className={adminInput} />
       </label>
       {state?.error && (
-        <p role="alert" className="flex items-start gap-2 rounded-xl bg-peach-soft px-3.5 py-3 text-sm text-danger">
+        <p role="alert" className="flex items-start gap-2 rounded-[10px] bg-peach-soft px-3.5 py-3 text-sm text-danger">
           <AlertCircle size={18} className="mt-px shrink-0" />
           {state.error}
         </p>
       )}
       {state?.ok && (
-        <p role="status" className="flex items-center gap-2 rounded-xl bg-mint-faint px-3.5 py-3 text-sm font-semibold text-mint-dark">
+        <p role="status" className="flex items-center gap-2 rounded-[10px] bg-mint-faint px-3.5 py-3 text-sm font-semibold text-mint-dark">
           <Check size={18} />
           Đã đổi mật khẩu
         </p>

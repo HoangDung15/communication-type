@@ -17,7 +17,7 @@ export function DeleteRegistrationForm({ id, name }: { id: number; name: string 
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-10 items-center justify-center rounded-xl border border-red-600 px-4 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
+        className="inline-flex h-10 items-center justify-center rounded-[10px] border border-red-600 px-4 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
       >
         {pending ? "Đang xóa..." : "Xóa đơn"}
       </button>

@@ -1,8 +1,11 @@
+import { after } from "next/server";
 import { isMailConfigured, sendConfirmation } from "@/lib/mail";
 import { isRateLimited } from "@/lib/rate-limit";
 import { DEFAULT_REFERRAL } from "@/lib/ref";
 import { registerSchema } from "@/lib/register-schema";
 import { findManager, insertRegistration } from "@/lib/registrations";
+import { appendToBackup, DB_FAILED_STATUS, mirrorRegistration, recordFromPayload } from "@/lib/sheet-sync";
+import { statusOf } from "@/lib/statuses";
 
 type Body = { ok: boolean; error?: string; field?: "referral"; emailSent?: boolean };
 
@@ -34,10 +37,15 @@ export async function POST(request: Request) {
       manager = await findManager(DEFAULT_REFERRAL);
       payload.referral = manager ? DEFAULT_REFERRAL : "";
     }
-    await insertRegistration(payload, manager);
+    const id = await insertRegistration(payload, manager);
+    // Chép sang Google Sheet sau khi đã trả lời khách, lỗi Sheet không ảnh hưởng đăng ký.
+    const record = recordFromPayload(payload, { id, managerName: manager?.name ?? null, statusLabel: statusOf("new").label });
+    after(() => mirrorRegistration(record, manager?.id ?? null));
   } catch (err) {
     console.error("[register] Lưu đăng ký thất bại:", err);
-    return json({ ok: false, error: "Gửi đăng ký chưa thành công" }, 502);
+    // Neon lỗi (sập, hết quota…): vẫn nhận đơn nếu ghi được vào Sheet dự phòng.
+    const saved = await appendToBackup(recordFromPayload(payload, { id: null, managerName: null, statusLabel: DB_FAILED_STATUS }));
+    if (!saved) return json({ ok: false, error: "Gửi đăng ký chưa thành công" }, 502);
   }
 
   // Email lỗi thì chỉ ghi log, không chặn người dùng (đăng ký đã được lưu).

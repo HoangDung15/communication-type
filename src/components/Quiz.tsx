@@ -101,7 +101,7 @@ export function Quiz() {
       </div>
 
       <main
-        className={`relative mx-auto flex w-full max-w-[720px] flex-1 flex-col px-5 pb-6 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-[28px] md:border md:border-line md:bg-white md:px-10 md:py-9 ${loaded ? "opacity-100" : "opacity-0"}`}
+        className={`relative mx-auto flex w-full max-w-[720px] flex-1 flex-col px-5 pb-6 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-2xl md:border md:border-line md:bg-white md:px-10 md:py-9 ${loaded ? "opacity-100" : "opacity-0"}`}
       >
         <div className="flex items-center gap-3">
           {current === 0 ? (
@@ -158,12 +158,12 @@ export function Quiz() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => choose(c)}
-                className={`flex items-start gap-3.5 rounded-[18px] border-2 px-4 py-[18px] text-left transition-colors md:min-h-[150px] md:flex-col md:rounded-[20px] md:p-5 ${
+                className={`flex items-start gap-3.5 rounded-xl border-2 px-4 py-[18px] text-left transition-colors md:min-h-[150px] md:flex-col md:rounded-xl md:p-5 ${
                   active ? "border-brand bg-peach-soft" : "border-line bg-white hover:border-line-strong hover:bg-cream"
                 }`}
               >
                 <span
-                  className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] font-bold uppercase md:size-9 ${
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-lg font-bold uppercase md:size-9 ${
                     active ? "bg-brand text-white" : "bg-[#fff4d6] text-sun-ink"
                   }`}
                 >

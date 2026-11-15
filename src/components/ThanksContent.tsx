@@ -95,7 +95,7 @@ export function ThanksContent() {
 
         {/* Thẻ dạng vé: kết quả đã gửi kèm */}
         {result?.field && (
-          <div className="relative mt-7 flex overflow-hidden rounded-3xl border border-line bg-white motion-safe:animate-rise" style={{ animationDelay: "0.25s" }}>
+          <div className="relative mt-7 flex overflow-hidden rounded-2xl border border-line bg-white motion-safe:animate-rise" style={{ animationDelay: "0.25s" }}>
             <div className="flex w-[118px] shrink-0 flex-col items-center justify-center bg-sun px-3 py-5">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[#5c3d00]">Phong cách</span>
               <span className="mt-1 text-[30px] font-extrabold leading-none tracking-[1px]">{result.type}</span>
@@ -113,7 +113,7 @@ export function ThanksContent() {
         )}
 
         {/* Các bước tiếp theo */}
-        <section className="mt-4 rounded-3xl border border-line bg-white px-5 py-5 motion-safe:animate-rise" style={{ animationDelay: "0.35s" }}>
+        <section className="mt-4 rounded-2xl border border-line bg-white px-5 py-5 motion-safe:animate-rise" style={{ animationDelay: "0.35s" }}>
           <h2 className="text-base font-bold">Tiếp theo sẽ là</h2>
           <ol className="mt-4 flex flex-col">
             {steps.map(({ Icon, tone, title, text, done }, i) => (
@@ -133,7 +133,7 @@ export function ThanksContent() {
           </ol>
 
           {info?.emailSent && (
-            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-sky-soft px-3.5 py-3 text-sm leading-relaxed text-sky-ink">
+            <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-sky-soft px-3.5 py-3 text-sm leading-relaxed text-sky-ink">
               <Mail size={18} className="mt-0.5 shrink-0" />
               <span>
                 Email xác nhận đã được gửi tới <b className="break-words">{info.email}</b>. Nếu chưa thấy, bạn kiểm tra thêm mục Spam nhé.
@@ -142,7 +142,7 @@ export function ThanksContent() {
           )}
 
           {site.thanksNextSteps && (
-            <p className="mt-5 rounded-2xl bg-sun-soft px-3.5 py-3 text-sm leading-relaxed text-sun-ink">{site.thanksNextSteps}</p>
+            <p className="mt-5 rounded-xl bg-sun-soft px-3.5 py-3 text-sm leading-relaxed text-sun-ink">{site.thanksNextSteps}</p>
           )}
         </section>
 
@@ -153,7 +153,7 @@ export function ThanksContent() {
               <ArrowRight />
             </Link>
           )}
-          <Link href="/" className="inline-flex h-12 items-center justify-center rounded-2xl text-[15px] font-semibold text-brand-dark hover:bg-peach-soft">
+          <Link href="/" className="inline-flex h-12 items-center justify-center rounded-xl text-[15px] font-semibold text-brand-dark hover:bg-peach-soft">
             Về trang chủ
           </Link>
         </div>

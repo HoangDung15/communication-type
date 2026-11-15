@@ -19,22 +19,23 @@ export function DimensionBars({ type }: { type: string }) {
 
   useEffect(() => {
     const r = resultStore.get();
-    if (r && r.type === type) setScores(r.scores);
+    // Đặt lại cả khi không khớp: chuyển sang kết quả khác thì không giữ điểm của kết quả cũ.
+    setScores(r && r.type === type ? r.scores : null);
   }, [type]);
 
   if (!scores) return null;
 
   return (
-    <section className="flex flex-col gap-3.5 rounded-[20px] border border-line bg-white px-4 py-[18px]">
-      <h2 className="text-base font-bold">4 xu hướng của bạn</h2>
+    <section className="flex w-full max-w-[560px] flex-col gap-5 rounded-2xl border border-line bg-white px-5 py-6 sm:px-7">
+      <h2 className="text-lg font-extrabold sm:text-xl">4 xu hướng của bạn</h2>
       {DIMENSIONS.map((d) => {
         const left = scores[d.a.letter];
         const right = scores[d.b.letter];
         const total = left + right;
         const leftWins = left > right;
         return (
-          <div key={d.id} className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-[13px]">
+          <div key={d.id} className="flex flex-col gap-2">
+            <div className="flex justify-between gap-3 text-[15px] sm:text-base">
               <span className={leftWins ? "font-bold" : "text-muted"}>
                 {d.a.name} ({d.a.letter})
               </span>
@@ -43,14 +44,14 @@ export function DimensionBars({ type }: { type: string }) {
               </span>
             </div>
             <div
-              className="flex gap-1"
+              className="flex gap-1.5"
               role="img"
               aria-label={`${leftWins ? left : right} trên ${total} câu nghiêng về ${leftWins ? d.a.name : d.b.name}`}
             >
               {Array.from({ length: total }, (_, i) => {
                 // Ô bên trái tô theo điểm bên trái, ô bên phải theo điểm bên phải; bên thắng được tô màu.
                 const filled = leftWins ? i < left : i >= left;
-                return <span key={i} className={`h-2.5 flex-1 rounded ${filled ? COLORS[d.id] : "bg-track"}`} />;
+                return <span key={i} className={`h-3.5 flex-1 rounded-full ${filled ? COLORS[d.id] : "bg-track"}`} />;
               })}
             </div>
           </div>

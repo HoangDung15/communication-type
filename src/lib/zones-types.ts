@@ -45,6 +45,8 @@ export type ZonesFileEntry = {
   zones: Partial<Record<ZoneKey, ZoneData>>;
   /** Phần nội dung viết bổ sung trong repo, không có nguyên văn trong sheet nguồn. */
   supplementedZones?: ZoneKey[];
+  /** Ô "PHÂN TÍCH CHUYÊN SÂU" trong sheet (đã bỏ dòng tiêu đề): lời mời trong popup vùng vàng. */
+  deep?: string;
 };
 
 /** Cấu trúc file src/data/results-zones.json (do scripts/sync-zones.ts tạo ra). */

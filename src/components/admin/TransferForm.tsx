@@ -42,7 +42,7 @@ export function TransferForm({ id, targets }: { id: number; targets: { id: numbe
       </div>
       <p className="text-xs text-muted">Chỉ đơn của BNV mới được chuyển, và chỉ chuyển được một lần.</p>
       {state?.error && (
-        <p role="alert" className="flex items-start gap-2 rounded-xl bg-peach-soft px-3.5 py-3 text-sm text-danger">
+        <p role="alert" className="flex items-start gap-2 rounded-[10px] bg-peach-soft px-3.5 py-3 text-sm text-danger">
           <AlertCircle size={18} className="mt-px shrink-0" />
           {state.error}
         </p>

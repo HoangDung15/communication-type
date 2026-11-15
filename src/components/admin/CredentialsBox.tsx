@@ -17,7 +17,7 @@ export function CredentialsBox({
   const message = `Trang quản lý: ${loginUrl}\nTên đăng nhập: ${username}\nMật khẩu: ${password}`;
 
   return (
-    <div role="status" className="flex flex-col gap-2 rounded-xl border border-mint/40 bg-mint-faint p-4 text-sm">
+    <div role="status" className="flex flex-col gap-2 rounded-[10px] border border-mint/40 bg-mint-faint p-4 text-sm">
       <p className="font-bold text-mint-dark">{title}</p>
       <dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-y-1">
         <dt className="text-muted">Trang quản lý</dt>

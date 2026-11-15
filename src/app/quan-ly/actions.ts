@@ -16,7 +16,9 @@ import {
   type CreateManagerResult,
 } from "@/lib/admin-data";
 import { endSession, hashPassword, requireAdmin, requireUser, startSession, verifyPassword } from "@/lib/auth";
+import { extractSpreadsheetId, GoogleSheetsError, isGoogleConfigured, serviceAccountEmail } from "@/lib/google-sheets";
 import { isRateLimited } from "@/lib/rate-limit";
+import { ensureSheetTab, getUserSheet, setUserSheet, syncUserSheet } from "@/lib/sheet-sync";
 import { isStatus } from "@/lib/statuses";
 
 // Mọi action đều tự kiểm tra đăng nhập và quyền, vì action có thể bị gọi thẳng bằng POST.
@@ -128,4 +130,57 @@ export async function changePasswordAction(
   if (next !== str(fd, "confirm")) return { error: "Hai lần nhập mật khẩu mới chưa khớp" };
   const error = await changeOwnPassword(user, str(fd, "current"), next);
   return error ? { error } : { ok: true };
+}
+
+// ---- Kết nối Google Sheet của từng tài khoản ----
+
+export type SheetActionState = { ok?: boolean; error?: string; message?: string } | null;
+
+function sheetErrorMessage(err: unknown): string {
+  console.error("[sheet]", err);
+  const status = err instanceof GoogleSheetsError ? err.status : 0;
+  if (status === 403) return `Sheet chưa chia sẻ quyền "Người chỉnh sửa" cho email ${serviceAccountEmail() ?? "của hệ thống"}.`;
+  if (status === 404) return "Không tìm thấy Sheet. Kiểm tra lại link.";
+  if (status === 400) return "File này không phải Google Sheet (có thể là file Excel tải lên Drive). Hãy tạo một Google Sheet mới.";
+  return "Chưa kết nối được với Google, vui lòng thử lại sau ít phút.";
+}
+
+export async function connectSheetAction(_prev: SheetActionState, fd: FormData): Promise<SheetActionState> {
+  const user = await requireUser();
+  if (!isGoogleConfigured()) return { error: "Admin chưa cài đặt kết nối Google, chưa dùng được tính năng này." };
+  const sheetId = extractSpreadsheetId(str(fd, "sheet"));
+  if (!sheetId) return { error: "Link chưa đúng. Hãy dán link dạng https://docs.google.com/spreadsheets/d/…" };
+  try {
+    await ensureSheetTab(sheetId); // đồng thời thử quyền ghi
+  } catch (err) {
+    return { error: sheetErrorMessage(err) };
+  }
+  await setUserSheet(user.id, sheetId);
+  revalidatePath("/quan-ly", "layout");
+  try {
+    const added = await syncUserSheet(user, sheetId);
+    return { ok: true, message: `Đã kết nối. Đã thêm ${added} đơn hiện có vào Sheet.` };
+  } catch (err) {
+    console.error("[sheet] Đổ đơn cũ thất bại:", err);
+    return { ok: true, message: "Đã kết nối, nhưng chưa đổ được đơn cũ. Bấm “Đồng bộ lại” để thử lại." };
+  }
+}
+
+export async function syncSheetAction(_prev: SheetActionState, _fd: FormData): Promise<SheetActionState> {
+  const user = await requireUser();
+  if (isRateLimited(`sheet-sync:${user.id}`)) return { error: "Bạn vừa đồng bộ nhiều lần, vui lòng đợi ít phút." };
+  const sheet = await getUserSheet(user.id);
+  if (!sheet) return { error: "Tài khoản chưa kết nối Google Sheet." };
+  try {
+    const added = await syncUserSheet(user, sheet.sheetId);
+    return { ok: true, message: added ? `Đã thêm ${added} đơn còn thiếu vào Sheet.` : "Sheet đã có đủ các đơn." };
+  } catch (err) {
+    return { error: sheetErrorMessage(err) };
+  }
+}
+
+export async function disconnectSheetAction(): Promise<void> {
+  const user = await requireUser();
+  await setUserSheet(user.id, null);
+  revalidatePath("/quan-ly", "layout");
 }

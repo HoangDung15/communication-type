@@ -19,7 +19,7 @@ Web Next.js (App Router) + React 19: landing test phong cách giao tiếp MBTI �
 ## Quy ước làm việc
 
 - Ngôn ngữ UI: tiếng Việt. Copy landing giữ nguyên 100% khi refactor flow — mọi chỉnh chữ là task riêng.
-- Flow landing hiện tại: một trang cuộn (`scrollIntoView` giữa `#bai-test` → `#chon-linh-vuc` → `#ket-qua`). Hướng chuyển: **wizard 4 bước** (Intro → Khám phá → Test → Kết quả+Tư vấn), xem `docs/landing-wizard-plan.md` — đọc trước khi sửa `Landing.tsx`.
+- Flow trang chủ (`Landing.tsx`, state `step`): **INTRO** = landing bán hàng cuộn dài (`src/components/landing/SalesLanding.tsx`, copy trong `landing/content.ts`) → **QUIZ** (12 câu + chọn lĩnh vực) → **RESULT** (`ConsultationCallout` + kết quả 3 vòng tròn). `docs/landing-wizard-plan.md` là lịch sử, wizard 4–5 bước đã được thay.
 - Không thêm dependency cho task UI; không đổi DB schema/API/admin khi làm flow landing.
 - Ô nội dung thiếu (`complete: false`) luôn render disabled kèm ghi chú, không cho chọn.
 - Commit message tiếng Việt hoặc Anh đều được, kết thúc bằng `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.

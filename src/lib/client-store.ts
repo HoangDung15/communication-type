@@ -10,6 +10,7 @@ const KEYS = {
   result: "mbti.result.v1",
   attribution: "mbti.attribution.v1",
   thanks: "mbti.thanks.v1",
+  registered: "mbti.registered.v1",
 } as const;
 
 const ATTRIBUTION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -79,6 +80,14 @@ export type ThanksInfo = { name: string; email: string; emailSent: boolean };
 export const thanksStore = {
   get: () => read<ThanksInfo>("session", KEYS.thanks),
   set: (info: ThanksInfo) => write("session", KEYS.thanks, info),
+};
+
+// Đã gửi đăng ký tư vấn thành công trên máy này: trang kết quả thôi mời đăng ký nữa.
+export type RegisteredInfo = { at: number };
+
+export const registeredStore = {
+  get: () => read<RegisteredInfo>("local", KEYS.registered),
+  set: () => write("local", KEYS.registered, { at: Date.now() } satisfies RegisteredInfo),
 };
 
 export function resetAll() {

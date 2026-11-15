@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Blobs, SiteHeader } from "./SiteHeader";
 import { AlertCircle, ArrowLeft } from "./icons";
 import { btnPrimary, iconBtn } from "./ui";
-import { attributionStore, quizStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
+import { attributionStore, quizStore, registeredStore, resultStore, thanksStore, type StoredResult } from "@/lib/client-store";
 import { formatScores } from "@/lib/mbti";
 import { formSchema, GENDERS, suggestEmail, type FormField, type FormValues } from "@/lib/register-schema";
 import { site } from "@/lib/site";
@@ -43,7 +43,7 @@ function validate(values: Values, referral: string) {
 }
 
 const inputBase =
-  "w-full rounded-[14px] border-[1.5px] bg-white px-3.5 text-base text-ink placeholder:text-[#a8988a] transition-colors focus:outline-none focus:border-sun-deep";
+  "w-full rounded-[10px] border-[1.5px] bg-white px-3.5 text-base text-ink placeholder:text-[#a8988a] transition-colors focus:outline-none focus:border-sun-deep";
 
 export function RegisterForm({
   validCodes,
@@ -158,6 +158,7 @@ export function RegisterForm({
       if (!res.ok || !body.ok) throw new Error(body.error || "Gửi đăng ký chưa thành công");
       const info = { name: data.name, email: data.email, emailSent: Boolean(body.emailSent) };
       thanksStore.set(info);
+      registeredStore.set();
       if (onSuccess) onSuccess(info);
       else router.push("/cam-on");
     } catch (err) {
@@ -187,7 +188,7 @@ export function RegisterForm({
       </div>
 
       <main
-        className={`relative mx-auto flex w-full max-w-[640px] flex-1 flex-col px-5 pb-8 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-[28px] md:border md:border-line md:bg-white md:px-10 md:py-9 ${result || !requireResult ? "opacity-100" : "opacity-0"}`}
+        className={`relative mx-auto flex w-full max-w-[640px] flex-1 flex-col px-5 pb-8 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-2xl md:border md:border-line md:bg-white md:px-10 md:py-9 ${result || !requireResult ? "opacity-100" : "opacity-0"}`}
       >
         {/* Modal tự vẽ nút đóng riêng nên không cần nút quay lại; trang /dang-ky giữ nút này. */}
         {backLabel ? (
@@ -203,8 +204,8 @@ export function RegisterForm({
         <p className="mt-2 text-[15px] leading-relaxed text-body">Điền thông tin để đội ngũ {site.orgName} liên hệ với bạn.</p>
 
         {result ? (
-          <div className="mt-[18px] flex items-center gap-3 rounded-2xl border border-line bg-white px-3.5 py-3 md:bg-cream">
-            <span className="rounded-[10px] bg-sun px-2.5 py-2 text-base font-extrabold tracking-[1px]">{result.type}</span>
+          <div className="mt-[18px] flex items-center gap-3 rounded-xl border border-line bg-white px-3.5 py-3 md:bg-cream">
+            <span className="rounded-lg bg-sun px-2.5 py-2 text-base font-extrabold tracking-[1px]">{result.type}</span>
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-semibold">Lĩnh vực: {result.field}</span>
               <span className="text-[13px] text-muted">Kết quả này sẽ được gửi kèm đăng ký</span>
@@ -212,7 +213,7 @@ export function RegisterForm({
           </div>
         ) : (
           !redirecting && (
-            <p className="mt-[18px] rounded-2xl border border-dashed border-line-strong bg-cream/60 px-3.5 py-3 text-sm leading-relaxed text-body">
+            <p className="mt-[18px] rounded-xl border border-dashed border-line-strong bg-cream/60 px-3.5 py-3 text-sm leading-relaxed text-body">
               Bạn chưa làm bài test — vẫn đăng ký được. Muốn phân tích riêng theo phong cách của mình, hãy làm bài test trước.
             </p>
           )
@@ -240,7 +241,7 @@ export function RegisterForm({
                       type="button"
                       aria-pressed={active}
                       onClick={() => update("gender", g)}
-                      className={`h-[50px] flex-1 rounded-[14px] border-[1.5px] text-sm transition-colors ${
+                      className={`h-[50px] flex-1 rounded-[10px] border-[1.5px] text-sm transition-colors ${
                         active
                           ? "border-brand bg-peach-soft font-bold text-brand-dark"
                           : `${errors.gender ? "border-[#c2410c]" : "border-line-strong"} bg-white font-semibold hover:bg-cream`
@@ -309,7 +310,7 @@ export function RegisterForm({
           </p>
 
           {serverError && (
-            <div role="alert" className="flex items-start gap-2 rounded-xl bg-peach-soft px-3.5 py-3 text-sm text-danger">
+            <div role="alert" className="flex items-start gap-2 rounded-[10px] bg-peach-soft px-3.5 py-3 text-sm text-danger">
               <AlertCircle size={18} className="mt-px shrink-0" />
               <span>{serverError}. Bạn vui lòng thử lại sau giây lát.</span>
             </div>

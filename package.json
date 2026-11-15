@@ -11,7 +11,8 @@
     "sync-zones": "node --import tsx --env-file-if-exists=.env.local scripts/sync-zones.ts",
     "sync-zones:local": "node --import tsx scripts/sync-zones.ts --local mbti.xlsx",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.ts",
-    "admin:create": "tsx --env-file-if-exists=.env.local scripts/create-admin.ts"
+    "admin:create": "tsx --env-file-if-exists=.env.local scripts/create-admin.ts",
+    "check-google": "tsx --env-file-if-exists=.env.local scripts/check-google.ts"
   },
   "dependencies": {
     "@neon/config": "^1.9.6",

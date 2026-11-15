@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import rawZones from "@/data/results-zones.json";
 import { Landing } from "@/components/Landing";
 import { getPool } from "@/lib/db";
-import { getCompleteFieldsByType, getZoneFieldCount, type ZonesFileEntry } from "@/lib/zones";
+import { getCompleteFieldsByType, type ZonesFileEntry } from "@/lib/zones";
 
 export const metadata: Metadata = { title: "BETTER TALK, BETTER WORK" };
 
@@ -22,5 +22,5 @@ export default async function HomePage() {
   // Entries đầy đủ (kể cả incomplete) để FieldStep hiện ô disabled + ghi chú.
   const zoneEntries = (rawZones as ZonesJson).byType;
 
-  return <Landing fieldsByType={getCompleteFieldsByType()} fieldCount={getZoneFieldCount()} zoneEntries={zoneEntries} validCodes={validCodes} />;
+  return <Landing fieldsByType={getCompleteFieldsByType()} zoneEntries={zoneEntries} validCodes={validCodes} />;
 }

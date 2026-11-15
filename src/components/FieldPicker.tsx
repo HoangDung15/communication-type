@@ -40,7 +40,7 @@ export function FieldPicker({ fieldsByType }: { fieldsByType: Record<string, str
       </div>
 
       <main
-        className={`relative mx-auto flex w-full max-w-[720px] flex-1 flex-col px-5 pb-6 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-[28px] md:border md:border-line md:bg-white md:px-10 md:py-9 ${result ? "opacity-100" : "opacity-0"}`}
+        className={`relative mx-auto flex w-full max-w-[720px] flex-1 flex-col px-5 pb-6 pt-4 transition-opacity md:mb-12 md:mt-10 md:flex-none md:rounded-2xl md:border md:border-line md:bg-white md:px-10 md:py-9 ${result ? "opacity-100" : "opacity-0"}`}
       >
         <div className="flex items-center gap-3">
           <Link href="/quiz" aria-label="Quay lại bài test" className={iconBtn}>
@@ -70,7 +70,7 @@ export function FieldPicker({ fieldsByType }: { fieldsByType: Record<string, str
                 role="radio"
                 aria-checked={active}
                 onClick={() => setSelected(field)}
-                className={`relative flex min-h-[118px] flex-col gap-3.5 rounded-[18px] border-2 p-4 text-left transition-colors ${
+                className={`relative flex min-h-[118px] flex-col gap-3.5 rounded-xl border-2 p-4 text-left transition-colors ${
                   active ? "border-brand bg-peach-soft" : "border-line bg-white hover:border-line-strong hover:bg-cream"
                 }`}
               >
