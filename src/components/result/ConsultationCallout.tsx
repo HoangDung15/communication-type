@@ -12,8 +12,8 @@ const benefits = [
     detail: "Trao đổi về những tình huống bạn đang gặp: trình bày ý tưởng, phản biện, xử lý bất đồng, phối hợp với người khác.",
   },
   {
-    title: "Xác định 3 năng lực cần ưu tiên phát triển",
-    detail: "Nhận diện điểm mạnh, rào cản và 3 năng lực giao tiếp nên tập trung cải thiện.",
+    title: "Xác định phương pháp thay đổi",
+    detail: "Nhận phương pháp thực hành cụ thể để phát triển năng lực giao tiếp và tư duy, từng bước thay đổi cách suy nghĩ, trao đổi và xử lý vấn đề trong công việc.",
   },
 ];
 

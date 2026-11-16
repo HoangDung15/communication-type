@@ -6,10 +6,10 @@ export const hero = {
     "Bạn có năng lực chuyên môn, nhưng liệu cách bạn tư duy và giao tiếp đã giúp bạn phát huy hết khả năng trong công việc?",
   benefitsTitle: "BẠN SẼ NHẬN ĐƯỢC:",
   benefits: [
-    "Bài test khám phá phong cách MBTI.",
-    "Buổi tư vấn 1:1 online cùng Advisor.",
+    "Bài test khám phá phong cách giao tiếp thông qua MBTI theo đặc thù nghề nghiệp.",
+    "Buổi giải đáp kết quả 1:1 online cùng Advisor.",
     "Phân tích và đối chiếu với tình huống thực tế trong công việc.",
-    "Xác định 3 năng lực giao tiếp cần ưu tiên phát triển.",
+    "Xác định phương pháp thay đổi để phát triển năng lực giao tiếp và tư duy.",
   ],
 };
 
@@ -31,15 +31,15 @@ export const session = {
   steps: [
     {
       label: "Nhận diện",
-      detail: "Phân tích kết quả MBTI: cách bạn tiếp nhận thông tin, suy nghĩ, ra quyết định và tương tác.",
+      detail: "Cùng Advisor nhìn lại phong cách tư duy, giao tiếp và cách chúng thể hiện trong công việc của bạn.",
     },
     {
       label: "Đối chiếu",
-      detail: "Liên hệ với tình huống thực tế: trình bày ý tưởng, phản biện, xử lý bất đồng, phối hợp.",
+      detail: "Trao đổi về những tình huống bạn đang gặp: trình bày ý tưởng, phản biện, xử lý bất đồng, phối hợp với người khác.",
     },
     {
       label: "Định hướng",
-      detail: "Xác định điểm mạnh, rào cản và 3 năng lực giao tiếp nên ưu tiên phát triển.",
+      detail: "Nhận phương pháp thực hành cụ thể để phát triển năng lực giao tiếp và tư duy, từng bước thay đổi cách suy nghĩ, trao đổi và xử lý vấn đề trong công việc.",
     },
   ],
   cta: "Đăng ký tư vấn 1:1 miễn phí",
